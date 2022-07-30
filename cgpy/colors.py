@@ -1,8 +1,11 @@
 import dataclasses
+import typing
 
 MIN_COLOR_INTENSITY = 0.0
 MAX_COLOR_INTENSITY = 1.0
 MAX_CHANNEL_VALUE = 255
+
+ColorId = typing.NewType('ColorId', int)
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
