@@ -35,5 +35,5 @@ class NormalizedPoint2D:
         assert 0 <= self.y <= 1
 
 
-def normalize_point2d(pt: Point2D, win: Window) -> NormalizedPoint2D:
+def normalize_polygon(poly: list[Point2D], win: Window) -> list[NormalizedPoint2D]:
     raise NotImplementedError()
