@@ -23,3 +23,17 @@ class Window:
             and pt.y > self.lower_left.y
             and pt.y < self.upper_right.y
         )
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class NormalizedPoint2D:
+    x: float
+    y: float
+
+    def __post_init__(self) -> None:
+        assert 0 <= self.x <= 1
+        assert 0 <= self.y <= 1
+
+
+def normalize_point2d(pt: Point2D, win: Window) -> NormalizedPoint2D:
+    raise NotImplementedError()
