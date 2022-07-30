@@ -1,20 +1,21 @@
-import cgpy.colors as colors
-import cgpy.devices as devices
+from cgpy.colors import Color, ColorId
+from cgpy.devices import Device, create_device_with_max_size, show_device
 
 
 def main() -> None:
-    dev = devices.create_device_with_max_size()
+    dev = Device(height=720, width=480)
+    dev = create_device_with_max_size()
     for y in range(dev.height):
         for x in range(dev.width):
-            dev.set(x, y, 1)
+            dev.set(x, y, ColorId(1))
 
     palette = [
-        colors.Color(red=0, green=0, blue=0),
-        colors.Color(red=1, green=0, blue=0),
-        colors.Color(red=0, green=0, blue=1),
+        Color(red=0, green=0, blue=0),
+        Color(red=1, green=0, blue=0),
+        Color(red=0, green=0, blue=1),
     ]
 
-    devices.show_device(dev, palette, close_after_seconds=5)
+    show_device(dev, palette, close_after_seconds=5)
 
 
 if __name__ == "__main__":
