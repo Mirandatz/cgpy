@@ -1,21 +1,29 @@
-from cgpy.colors import Color, ColorId
-from cgpy.devices import Device, create_device_with_max_size, show_device
+import cgpy.colors as colors
+import cgpy.devices as devices
+import cgpy.lin_alg as la
+import cgpy.universes as uni
 
 
 def main() -> None:
-    dev = Device(height=720, width=480)
-    dev = create_device_with_max_size()
-    for y in range(dev.height):
-        for x in range(dev.width):
-            dev.set(x, y, ColorId(1))
+    dev = devices.Device(
+        num_rows=1000,
+        num_columns=100,
+    )
+    for y in range(dev.num_rows):
+        for x in range(dev.num_columns):
+            dev.set(x, y, colors.ColorId(2))
 
     palette = [
-        Color(red=0, green=0, blue=0),
-        Color(red=1, green=0, blue=0),
-        Color(red=0, green=0, blue=1),
+        colors.Color(red=1, green=0, blue=0),
+        colors.Color(red=0, green=1, blue=0),
+        colors.Color(red=0, green=0, blue=1),
     ]
 
-    show_device(dev, palette, close_after_seconds=5)
+    devices.show_device(dev, palette, close_after_milliseconds=500)
+    palette[2] = colors.Color(red=1, green=0, blue=0)
+    devices.show_device(dev, palette, close_after_milliseconds=500)
+    palette[2] = colors.Color(red=0, green=1, blue=0)
+    devices.show_device(dev, palette, close_after_milliseconds=500)
 
 
 if __name__ == "__main__":

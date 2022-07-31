@@ -5,7 +5,7 @@ import cgpy.universes as uni
 
 
 def point2d_to_vector(pt: uni.Point2D) -> npt.NDArray[np.float32]:
-    vector = np.ones(shape=(3, 1), dtype=np.float32)
+    vector: npt.NDArray[np.float32] = np.ones(shape=(3, 1), dtype=np.float32)
     vector[0] = pt.x
     vector[1] = pt.y
     return vector
@@ -21,14 +21,15 @@ def vector3_to_point2d(vec: npt.NDArray[np.float32]) -> uni.Point2D:
     return uni.Point2D(x=rescaled[0, 0], y=rescaled[1, 0])
 
 
-def make_translation(x_offset: float, y_offset: float) -> npt.NDArray[np.float32]:
-    matrix = np.zeros(shape=(3, 3))
+def make_translation(delta_x: float, delta_y: float) -> npt.NDArray[np.float32]:
+    matrix: npt.NDArray[np.float32] = np.zeros(shape=(3, 3))
 
-    raise NotImplementedError()
+    matrix[0, 0] = 1
+    matrix[1, 1] = 1
+    matrix[2, 2] = 1
 
-    """
-    SUBSTITUA O  `raise NotImplementedError()` PELA IMPLEMENTAÇÃO
-    """
+    matrix[0, 2] = delta_x
+    matrix[1, 2] = delta_y
 
     return matrix
 
