@@ -1,5 +1,9 @@
-.DEFAULT_GOAL := remake_env
+.DEFAULT_GOAL := run_tests
 SHELL := /bin/bash
+
+.PHONY: run_tests
+run_tests:
+	source .venv/bin/activate && python -m pytest .
 
 .PHONY: create_env
 create_env:
