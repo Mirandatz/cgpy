@@ -61,21 +61,41 @@ class Device:
 @dataclasses.dataclass(frozen=True, slots=True)
 class Viewport:
     lower_left: DevicePoint
-    upper_right: DevicePoint
+    num_rows: int
+    num_columns: int
     device: Device
 
     def __post_init__(self) -> None:
-        assert self.lower_left.x < self.upper_right.x
-        assert self.lower_left.y < self.upper_right.y
+        assert self.num_rows >= 1
+        assert self.num_columns >= 1
         assert self.lower_left in self.device
-        assert self.upper_right in self.device
+
+        inclusive_upper_right = DevicePoint(
+            x=self.exclusive_right - 1,
+            y=self.exclusive_top - 1,
+        )
+        assert inclusive_upper_right in self.device
+
+    @property
+    def inclusive_left(self) -> int:
+        return self.lower_left.x
+
+    @property
+    def exclusive_top(self) -> int:
+        return self.lower_left.y + self.num_rows
+
+    @property
+    def exclusive_right(self) -> int:
+        return self.lower_left.x + self.num_columns
+
+    @property
+    def inclusive_bottom(self) -> int:
+        return self.lower_left.y
 
     def __contains__(self, pt: DevicePoint) -> bool:
         return (
-            pt.x > self.lower_left.x
-            and pt.x < self.upper_right.x
-            and pt.y > self.lower_left.y
-            and pt.y < self.upper_right.y
+            self.inclusive_left <= pt.x < self.exclusive_right
+            and self.inclusive_bottom <= pt.y < self.exclusive_top
         )
 
     def set(self, x: int, y: int, color_id: colors.ColorId) -> None:
@@ -94,13 +114,6 @@ def create_device_with_max_size() -> Device:
 
     info = pygame.display.Info()
     return Device(num_columns=info.current_h, num_rows=info.current_w)
-
-
-# def normalized_point2d_to_device_point(
-#     pt: NormalizedPoint2D,
-#     port: Viewport,
-# ) -> DevicePoint:
-#     raise NotImplementedError()
 
 
 def draw_line_bresenham(
