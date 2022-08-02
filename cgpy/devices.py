@@ -1,5 +1,4 @@
 import dataclasses
-import typing
 
 import numpy as np
 import numpy.typing as npt
@@ -26,20 +25,18 @@ class Device:
         assert num_columns > 0
         assert num_rows > 0
 
-        self._num_rows = num_rows
-        self._num_columns = num_columns
-        self._buffer: npt.NDArray[np.float32] = np.zeros(
+        self._buffer: npt.NDArray[colors.ColorId] = np.zeros(
             shape=(num_rows, num_columns),
             dtype=colors.ColorId,
         )
 
     @property
     def num_rows(self) -> int:
-        return self._num_rows
+        return self._buffer.shape[0]
 
     @property
     def num_columns(self) -> int:
-        return self._num_columns
+        return self._buffer.shape[1]
 
     @property
     def raw_buffer(self) -> npt.NDArray[colors.ColorId]:
@@ -115,23 +112,6 @@ def draw_line_bresenham(
     raise NotImplementedError()
 
 
-# def fill_scanline(
-#     polygon: list[NormalizedPoint2D],
-#     color_id: colors.ColorId,
-#     port: Viewport,
-# ) -> None:
-#     raise NotImplementedError()
-
-
-# def fill_floodfill(
-#     polygon: list[NormalizedPoint2D],
-#     seed: DevicePoint,
-#     color_id: colors.ColorId,
-#     port: Viewport,
-# ) -> None:
-#     raise NotImplementedError()
-
-
 def show_device(
     device: Device,
     palette: list[colors.Color],
@@ -151,11 +131,15 @@ def show_device(
     )
 
     # decoding "float colors" to "byte colors"
-    red_palette = np.asarray([colors.extract_red_channel(c) for c in palette]).flatten()  # type: ignore
-    green_palette = np.asarray([colors.extract_green_channel(c) for c in palette]).flatten()  # type: ignore
-    blue_palette = np.asarray([colors.extract_blue_channel(c) for c in palette]).flatten()  # type: ignore
+    red_palette = np.asarray([colors.extract_red_channel(c) for c in palette]).flatten()
+    green_palette = np.asarray(
+        [colors.extract_green_channel(c) for c in palette]
+    ).flatten()
+    blue_palette = np.asarray(
+        [colors.extract_blue_channel(c) for c in palette]
+    ).flatten()
 
-    flattened_buffer: npt.NDArray[np.float32] = device.raw_buffer.flatten()
+    flattened_buffer: npt.NDArray[colors.ColorId] = device.raw_buffer.flatten()
 
     red_buffer = red_palette[flattened_buffer].reshape(
         device.num_rows, device.num_columns
@@ -168,7 +152,9 @@ def show_device(
     )
 
     # creating surface arrray
-    pixel_array = np.stack((red_buffer, green_buffer, blue_buffer), axis=-1).astype(np.uint8)  # type: ignore
+    pixel_array = np.stack((red_buffer, green_buffer, blue_buffer), axis=-1).astype(
+        np.uint8
+    )
 
     surface = pygame.surfarray.make_surface(pixel_array)
 
