@@ -1,5 +1,7 @@
 black
 flake8
+hypothesis
 mypy
 numpy
 pygame
+pytest
