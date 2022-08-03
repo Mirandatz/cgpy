@@ -126,6 +126,23 @@ def create_device_with_max_size() -> Device:
     return Device(num_columns=info.current_h, num_rows=info.current_w)
 
 
+def make_viewport_from_corners(
+    pt0: DevicePoint,
+    pt1: DevicePoint,
+    device: Device,
+) -> Viewport:
+    assert pt0 in device
+    assert pt1 in device
+
+    lower_left = DevicePoint(x=min(pt0.x, pt1.x), y=min(pt0.y, pt1.y))
+    num_columns = abs(pt1.x - pt0.x) + 1
+    num_rows = abs(pt1.y - pt0.y) + 1
+
+    return Viewport(
+        lower_left=lower_left, num_rows=num_rows, num_columns=num_columns, device=device
+    )
+
+
 def normalized_point_to_device_point(
     pt: cu.NormalizedPoint2D, port: Viewport
 ) -> DevicePoint:
