@@ -3,7 +3,8 @@ import dataclasses
 import numpy as np
 import numpy.typing as npt
 
-import cgpy.colors as colors
+import cgpy.colors as cc
+import cgpy.universes as cu
 
 
 @dataclasses.dataclass
@@ -25,9 +26,9 @@ class Device:
         assert num_columns > 0
         assert num_rows > 0
 
-        self._buffer: npt.NDArray[colors.ColorId] = np.zeros(
+        self._buffer: npt.NDArray[cc.ColorId] = np.zeros(
             shape=(num_rows, num_columns),
-            dtype=colors.ColorId,
+            dtype=cc.ColorId,
         )
 
     @property
@@ -39,7 +40,7 @@ class Device:
         return self._buffer.shape[1]
 
     @property
-    def raw_buffer(self) -> npt.NDArray[colors.ColorId]:
+    def raw_buffer(self) -> npt.NDArray[cc.ColorId]:
         return self._buffer
 
     def __repr__(self) -> str:
@@ -48,13 +49,13 @@ class Device:
     def __contains__(self, point: DevicePoint) -> bool:
         return point.x < self.num_columns and point.y < self.num_rows
 
-    def set(self, x: int, y: int, color_id: colors.ColorId) -> None:
+    def set(self, x: int, y: int, color_id: cc.ColorId) -> None:
         assert 0 <= x < self.num_columns
         assert 0 <= y < self.num_rows
 
         self._buffer[y, x] = color_id
 
-    def get(self, x: int, y: int) -> colors.ColorId:
+    def get(self, x: int, y: int) -> cc.ColorId:
         assert 0 <= x < self.num_columns
         assert 0 <= y < self.num_rows
 
@@ -104,11 +105,11 @@ class Viewport:
     def __repr__(self) -> str:
         return f"x={self.lower_left.x}, y={self.lower_left.y}, rows={self.num_rows}, columns={self.num_columns}"
 
-    def set(self, x: int, y: int, color_id: colors.ColorId) -> None:
+    def set(self, x: int, y: int, color_id: cc.ColorId) -> None:
         assert DevicePoint(x, y) in self
         self.device.set(x, y, color_id)
 
-    def get(self, x: int, y: int) -> colors.ColorId:
+    def get(self, x: int, y: int) -> cc.ColorId:
         assert DevicePoint(x, y) in self
         return self.device.get(x, y)
 
@@ -122,18 +123,73 @@ def create_device_with_max_size() -> Device:
     return Device(num_columns=info.current_h, num_rows=info.current_w)
 
 
+def normalized_point_to_device_point(
+    pt: cu.NormalizedPoint2D, port: Viewport
+) -> DevicePoint:
+    column_range = port.num_columns - 1
+    row_range = port.num_rows - 1
+
+    x_offset = int(pt.x * column_range)
+    y_offset = int(pt.y * row_range)
+
+    return DevicePoint(x=port.lower_left.x + x_offset, y=port.lower_left.y + y_offset)
+
+
+def _draw_vertical_line(
+    pt0: DevicePoint, pt1: DevicePoint, color_id: cc.ColorId, port: Viewport
+) -> None:
+    assert pt0 in port
+    assert pt1 in port
+    assert pt0.x == pt1.x
+
+    x = pt0.x
+    for y in range(min(pt0.y, pt1.y), max(pt0.y, pt1.y) + 1):
+        port.set(x=x, y=y, color_id=color_id)
+
+
 def draw_line_bresenham(
     pt0: DevicePoint,
     pt1: DevicePoint,
-    color_id: colors.ColorId,
+    color_id: cc.ColorId,
     port: Viewport,
 ) -> None:
-    raise NotImplementedError()
+    assert pt0 in port
+    assert pt1 in port
+
+    if pt0 == pt1:
+        port.set(pt0.x, pt0.y, color_id)
+        return
+
+    if pt0.x == pt1.x:
+        _draw_vertical_line(pt0, pt1, color_id, port)
+        return
+
+    x_inc = 1 if pt0.x < pt1.x else -1
+    y_inc = 1 if pt0.y < pt1.y else -1
+
+    delta_x = abs(pt1.x - pt0.x)
+    delta_y = abs(pt1.y - pt0.y)
+
+    error = delta_x if delta_x > delta_y else (-delta_y / 2)
+
+    x = pt0.x
+    y = pt0.y
+    while x != pt1.x and y != pt1.y:
+        port.set(x=x, y=y, color_id=color_id)
+
+        previous_error = error
+        if previous_error > -delta_x:
+            error -= delta_y
+            x += x_inc
+
+        if previous_error < delta_y:
+            error += delta_x
+            y += y_inc
 
 
 def show_device(
     device: Device,
-    palette: list[colors.Color],
+    palette: list[cc.Color],
     close_after_milliseconds: int = 2000,
 ) -> None:
     assert close_after_milliseconds > 0
@@ -150,16 +206,12 @@ def show_device(
     )
 
     # decoding "float colors" to "byte colors"
-    red_palette = np.asarray([colors.extract_red_channel(c) for c in palette]).flatten()
-    green_palette = np.asarray(
-        [colors.extract_green_channel(c) for c in palette]
-    ).flatten()
-    blue_palette = np.asarray(
-        [colors.extract_blue_channel(c) for c in palette]
-    ).flatten()
+    red_palette = np.asarray([cc.extract_red_channel(c) for c in palette]).flatten()
+    green_palette = np.asarray([cc.extract_green_channel(c) for c in palette]).flatten()
+    blue_palette = np.asarray([cc.extract_blue_channel(c) for c in palette]).flatten()
 
     tranposed_buffer = device.raw_buffer.transpose()
-    flattened_buffer: npt.NDArray[colors.ColorId] = tranposed_buffer.flatten()
+    flattened_buffer: npt.NDArray[cc.ColorId] = tranposed_buffer.flatten()
 
     red_buffer = red_palette[flattened_buffer].reshape(tranposed_buffer.shape)
     green_buffer = green_palette[flattened_buffer].reshape(tranposed_buffer.shape)
