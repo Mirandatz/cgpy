@@ -22,6 +22,14 @@ class Window:
             and self.lower_left.y <= pt.y <= self.upper_right.y
         )
 
+    @property
+    def width(self) -> float:
+        return self.upper_right.x - self.lower_left.x
+
+    @property
+    def height(self) -> float:
+        return self.upper_right.y - -self.lower_left.y
+
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class NormalizedPoint2D:
@@ -33,5 +41,14 @@ class NormalizedPoint2D:
         assert 0 <= self.y <= 1
 
 
+def _normalize_point_naive(pt: Point2D, win: Window) -> NormalizedPoint2D:
+    assert pt in win
+
+    return NormalizedPoint2D(
+        x=(pt.x - win.lower_left.x) / win.width,
+        y=(pt.y - win.lower_left.y) / win.height,
+    )
+
+
 def normalize_polygon(poly: list[Point2D], win: Window) -> list[NormalizedPoint2D]:
-    raise NotImplementedError()
+    return [_normalize_point_naive(p, win) for p in poly]
