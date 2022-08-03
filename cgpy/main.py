@@ -3,9 +3,8 @@ import cgpy.devices as cd
 import cgpy.universes as cu
 
 
-def main() -> None:
-
-    poly = [
+def exemplo1() -> None:
+    poly1 = [
         cu.Point2D(-9, -8),
         cu.Point2D(-7, -3),
         cu.Point2D(-4, -4),
@@ -13,17 +12,22 @@ def main() -> None:
         cu.Point2D(-6, -9),
     ]
 
+    poly2 = [
+        cu.Point2D(-6, -2),
+        cu.Point2D(-1, -2),
+        cu.Point2D(-1, -6),
+        cu.Point2D(-6, -6),
+    ]
+
     win = cu.Window(
         lower_left=cu.Point2D(-10, -10),
         upper_right=cu.Point2D(0, 0),
     )
 
-    npoly = cu.normalize_polygon(poly, win)
+    npoly1 = cu.normalize_polygon(poly1, win)
+    npoly2 = cu.normalize_polygon(poly2, win)
 
-    dev = cd.Device(
-        num_rows=500,
-        num_columns=500,
-    )
+    dev = cd.Device(num_rows=500, num_columns=500)
 
     port = cd.Viewport(
         lower_left=cd.DevicePoint(0, 0),
@@ -32,12 +36,22 @@ def main() -> None:
         device=dev,
     )
 
-    cd.draw_polygon(npoly, port, cc.ColorId(1))
+    cd.draw_polygon(npoly1, port, cc.ColorId(1))
+    cd.draw_polygon(npoly2, port, cc.ColorId(3))
 
-    palette = [cc.Color(0, 0, 0), cc.Color(1, 1, 1)]
-    # cd.device_to_png(dev, palette, pathlib.Path("/dev/shm/eita.png"))
-    cd.show_device(dev, palette, close_after_milliseconds=50000)
+    palette = [
+        cc.Color(0, 0, 0),
+        cc.Color(1, 0, 0),
+        cc.Color(0, 1, 0),
+        cc.Color(0, 0, 1),
+        cc.Color(1, 1, 1),
+    ]
+    cd.show_device(dev, palette, close_after_milliseconds=2000)
+
+
+def main() -> None:
+    ...
 
 
 if __name__ == "__main__":
-    main()
+    exemplo1()
