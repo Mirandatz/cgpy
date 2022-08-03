@@ -146,7 +146,7 @@ def show_device(
     import pygame
 
     screen = pygame.display.set_mode(
-        (device.num_rows, device.num_columns), pygame.NOFRAME
+        (device.num_columns, device.num_rows), pygame.NOFRAME
     )
 
     # decoding "float colors" to "byte colors"
@@ -158,24 +158,22 @@ def show_device(
         [colors.extract_blue_channel(c) for c in palette]
     ).flatten()
 
-    flattened_buffer: npt.NDArray[colors.ColorId] = device.raw_buffer.flatten()
+    tranposed_buffer = device.raw_buffer.transpose()
+    flattened_buffer: npt.NDArray[colors.ColorId] = tranposed_buffer.flatten()
 
-    red_buffer = red_palette[flattened_buffer].reshape(
-        device.num_rows, device.num_columns
-    )
-    green_buffer = green_palette[flattened_buffer].reshape(
-        device.num_rows, device.num_columns
-    )
-    blue_buffer = blue_palette[flattened_buffer].reshape(
-        device.num_rows, device.num_columns
-    )
+    red_buffer = red_palette[flattened_buffer].reshape(tranposed_buffer.shape)
+    green_buffer = green_palette[flattened_buffer].reshape(tranposed_buffer.shape)
+    blue_buffer = blue_palette[flattened_buffer].reshape(tranposed_buffer.shape)
 
-    # creating surface arrray
     pixel_array = np.stack((red_buffer, green_buffer, blue_buffer), axis=-1).astype(
         np.uint8
     )
 
-    surface = pygame.surfarray.make_surface(pixel_array)
+    # place origin on the bottom-left part of the screen
+
+    mirrored_array = np.flip(pixel_array, axis=1)
+
+    surface = pygame.surfarray.make_surface(mirrored_array)
 
     screen.blit(surface, (0, 0))
     pygame.display.update()
