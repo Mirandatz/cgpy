@@ -31,6 +31,20 @@ def main() -> None:
             port=port,
         )
 
+    for y in range(dev.num_rows):
+        cd.draw_line_bresenham(
+            pt0=center,
+            pt1=cd.DevicePoint(0, y),
+            color_id=cc.ColorId(1),
+            port=port,
+        )
+        cd.draw_line_bresenham(
+            pt0=center,
+            pt1=cd.DevicePoint(dev.num_rows - 1, y),
+            color_id=cc.ColorId(1),
+            port=port,
+        )
+
     palette = [cc.Color(0, 0, 0), cc.Color(1, 1, 1)]
     # cd.device_to_png(dev, palette, pathlib.Path("/dev/shm/eita.png"))
     cd.show_device(dev, palette, close_after_milliseconds=50000)

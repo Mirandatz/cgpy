@@ -155,38 +155,47 @@ def draw_line_bresenham(
     color_id: cc.ColorId,
     port: Viewport,
 ) -> None:
-    assert pt0 in port
-    assert pt1 in port
+    # based on:
+    # http://www.roguebasin.com/index.php/Bresenham%27s_Line_Algorithm#Python
 
-    if pt0 == pt1:
-        port.set(pt0.x, pt0.y, color_id)
-        return
+    x0 = pt0.x
+    y0 = pt0.y
+    x1 = pt1.x
+    y1 = pt1.y
+    dx = x1 - x0
+    dy = y1 - y0
 
-    if pt0.x == pt1.x:
-        _draw_vertical_line(pt0, pt1, color_id, port)
-        return
+    # Determine how steep the line is
+    is_steep = abs(dy) > abs(dx)
 
-    x_inc = 1 if pt0.x < pt1.x else -1
-    y_inc = 1 if pt0.y < pt1.y else -1
+    # Rotate line
+    if is_steep:
+        x0, y0 = y0, x0
+        x1, y1 = y1, x1
 
-    delta_x = abs(pt1.x - pt0.x)
-    delta_y = abs(pt1.y - pt0.y)
+    if x0 > x1:
+        x0, x1 = x1, x0
+        y0, y1 = y1, y0
 
-    error = int(delta_x if delta_x > delta_y else (-delta_y / 2))
+    # Recalculate differentials
+    dx = x1 - x0
+    dy = y1 - y0
 
-    x = pt0.x
-    y = pt0.y
-    while x != pt1.x and y != pt1.y:
-        port.set(x=x, y=y, color_id=color_id)
+    # Calculate error
+    error = int(dx / 2.0)
+    ystep = 1 if y0 < y1 else -1
 
-        previous_error = error
-        if previous_error > -delta_x:
-            error -= delta_y
-            x += x_inc
-
-        if previous_error < delta_y:
-            error += delta_x
-            y += y_inc
+    # Iterate over bounding box generating points between start and end
+    y = y0
+    for x in range(x0, x1 + 1):
+        if is_steep:
+            port.set(x=y, y=x, color_id=color_id)
+        else:
+            port.set(x=x, y=y, color_id=color_id)
+        error -= abs(dy)
+        if error < 0:
+            y += ystep
+            error += dx
 
 
 def _device_to_surface(
