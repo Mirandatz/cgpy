@@ -22,7 +22,7 @@ def vector3_to_point2d(vec: npt.NDArray[np.float32]) -> uni.Point2D:
 
 
 def make_translation(delta_x: float, delta_y: float) -> npt.NDArray[np.float32]:
-    matrix: npt.NDArray[np.float32] = np.zeros(shape=(3, 3))
+    matrix: npt.NDArray[np.float32] = np.zeros(shape=(3, 3), dtype=np.float32)
 
     matrix[0, 0] = 1
     matrix[1, 1] = 1
@@ -35,7 +35,7 @@ def make_translation(delta_x: float, delta_y: float) -> npt.NDArray[np.float32]:
 
 
 def make_counterclockwise_rotation(degrees: float) -> npt.NDArray[np.float32]:
-    matrix = np.zeros(shape=(3, 3))
+    matrix = np.zeros(shape=(3, 3), dtype=np.float32)
 
     raise NotImplementedError()
 
@@ -47,7 +47,7 @@ def make_counterclockwise_rotation(degrees: float) -> npt.NDArray[np.float32]:
 
 
 def make_scale(x_factor: float, y_factor: float) -> npt.NDArray[np.float32]:
-    matrix = np.zeros(shape=(3, 3))
+    matrix = np.zeros(shape=(3, 3), dtype=np.float32)
 
     raise NotImplementedError()
 

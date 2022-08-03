@@ -1,7 +1,9 @@
 import dataclasses
+import pathlib
 
 import numpy as np
 import numpy.typing as npt
+import pygame
 
 import cgpy.colors as cc
 import cgpy.universes as cu
@@ -170,7 +172,7 @@ def draw_line_bresenham(
     delta_x = abs(pt1.x - pt0.x)
     delta_y = abs(pt1.y - pt0.y)
 
-    error = delta_x if delta_x > delta_y else (-delta_y / 2)
+    error = int(delta_x if delta_x > delta_y else (-delta_y / 2))
 
     x = pt0.x
     y = pt0.y
@@ -187,23 +189,15 @@ def draw_line_bresenham(
             y += y_inc
 
 
-def show_device(
+def _device_to_surface(
     device: Device,
     palette: list[cc.Color],
-    close_after_milliseconds: int = 2000,
-) -> None:
-    assert close_after_milliseconds > 0
+) -> pygame.surface.Surface:
     assert len(palette) > 0
 
     # validating 'color_ids'
     if np.min(device.raw_buffer) < 0 or np.max(device.raw_buffer) >= len(palette):
         raise ValueError("dispositivo contem `ColorId`s fora da `palette`")
-
-    import pygame
-
-    screen = pygame.display.set_mode(
-        (device.num_columns, device.num_rows), pygame.NOFRAME
-    )
 
     # decoding "float colors" to "byte colors"
     red_palette = np.asarray([cc.extract_red_channel(c) for c in palette]).flatten()
@@ -222,10 +216,31 @@ def show_device(
     )
 
     # place origin on the bottom-left part of the screen
-
     mirrored_array = np.flip(pixel_array, axis=1)
 
     surface = pygame.surfarray.make_surface(mirrored_array)
+    return surface
+
+
+def device_to_png(device: Device, palette: list[cc.Color], path: pathlib.Path) -> None:
+    assert len(palette) > 0
+    surface = _device_to_surface(device, palette)
+    pygame.image.save(surface, path)
+
+
+def show_device(
+    device: Device,
+    palette: list[cc.Color],
+    close_after_milliseconds: int = 2000,
+) -> None:
+    assert close_after_milliseconds > 0
+    assert len(palette) > 0
+
+    screen = pygame.display.set_mode(
+        (device.num_columns, device.num_rows), pygame.NOFRAME
+    )
+
+    surface = _device_to_surface(device, palette)
 
     screen.blit(surface, (0, 0))
     pygame.display.update()
