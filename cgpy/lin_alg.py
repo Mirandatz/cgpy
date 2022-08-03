@@ -22,37 +22,24 @@ def vector3_to_point2d(vec: npt.NDArray[np.float32]) -> uni.Point2D:
 
 
 def make_translation(delta_x: float, delta_y: float) -> npt.NDArray[np.float32]:
-    matrix: npt.NDArray[np.float32] = np.zeros(shape=(3, 3), dtype=np.float32)
-
-    matrix[0, 0] = 1
-    matrix[1, 1] = 1
-    matrix[2, 2] = 1
-
+    matrix: npt.NDArray[np.float32] = np.eye(3, 3, dtype=np.float32)
     matrix[0, 2] = delta_x
     matrix[1, 2] = delta_y
-
     return matrix
 
 
 def make_counterclockwise_rotation(degrees: float) -> npt.NDArray[np.float32]:
-    matrix = np.zeros(shape=(3, 3), dtype=np.float32)
-
-    raise NotImplementedError()
-
-    """
-    SUBSTITUA O  `raise NotImplementedError()` PELA IMPLEMENTAÇÃO
-    """
-
+    radians = degrees * np.pi / 180
+    matrix: npt.NDArray[np.float32] = np.eye(3, 3, dtype=np.float32)
+    matrix[0, 0] = np.cos(radians)
+    matrix[0, 1] = -1 * np.sin(radians)
+    matrix[1, 0] = np.sin(radians)
+    matrix[1, 1] = np.cos(radians)
     return matrix
 
 
 def make_scale(x_factor: float, y_factor: float) -> npt.NDArray[np.float32]:
-    matrix = np.zeros(shape=(3, 3), dtype=np.float32)
-
-    raise NotImplementedError()
-
-    """
-    SUBSTITUA O  `raise NotImplementedError()` PELA IMPLEMENTAÇÃO
-    """
-
+    matrix: npt.NDArray[np.float32] = np.eye(3, 3, dtype=np.float32)
+    matrix[0, 0] = x_factor
+    matrix[1, 1] = y_factor
     return matrix

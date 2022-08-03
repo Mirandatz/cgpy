@@ -1,8 +1,22 @@
 import cgpy.colors as cc
 import cgpy.devices as cd
+import cgpy.universes as cu
 
 
 def main() -> None:
+
+    poly = [
+        cu.Point2D(-9, -8),
+        cu.Point2D(-7, -3),
+        cu.Point2D(-4, -4),
+        cu.Point2D(-3, -6),
+        cu.Point2D(-6, -9),
+    ]
+    win = cu.Window(
+        lower_left=cu.Point2D(-10, -10),
+        upper_right=cu.Point2D(0, 0),
+    )
+
     dev = cd.Device(
         num_rows=500,
         num_columns=500,
