@@ -1,4 +1,5 @@
 import dataclasses
+import itertools
 import pathlib
 
 import numpy as np
@@ -196,6 +197,18 @@ def draw_line_bresenham(
         if error < 0:
             y += ystep
             error += dx
+
+
+def draw_polygon(
+    poly: list[cu.NormalizedPoint2D], port: Viewport, color_id: cc.ColorId
+) -> None:
+    assert len(poly) >= 2
+
+    connected = itertools.chain(poly, [poly[0]])
+    for a, b in itertools.pairwise(connected):
+        dev_a = normalized_point_to_device_point(a, port)
+        dev_b = normalized_point_to_device_point(b, port)
+        draw_line_bresenham(dev_a, dev_b, color_id, port)
 
 
 def _device_to_surface(

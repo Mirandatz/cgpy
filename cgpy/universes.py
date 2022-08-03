@@ -28,7 +28,7 @@ class Window:
 
     @property
     def height(self) -> float:
-        return self.upper_right.y - -self.lower_left.y
+        return self.upper_right.y - self.lower_left.y
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
