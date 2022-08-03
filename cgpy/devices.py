@@ -42,6 +42,9 @@ class Device:
     def raw_buffer(self) -> npt.NDArray[colors.ColorId]:
         return self._buffer
 
+    def __repr__(self) -> str:
+        return f"rows={self.num_rows}, columns={self.num_columns}"
+
     def __contains__(self, point: DevicePoint) -> bool:
         return point.x < self.num_columns and point.y < self.num_rows
 
@@ -97,6 +100,9 @@ class Viewport:
             self.inclusive_left <= pt.x < self.exclusive_right
             and self.inclusive_bottom <= pt.y < self.exclusive_top
         )
+
+    def __repr__(self) -> str:
+        return f"x={self.lower_left.x}, y={self.lower_left.y}, rows={self.num_rows}, columns={self.num_columns}"
 
     def set(self, x: int, y: int, color_id: colors.ColorId) -> None:
         assert DevicePoint(x, y) in self
