@@ -18,10 +18,8 @@ class Window:
 
     def __contains__(self, pt: Point2D) -> bool:
         return (
-            pt.x > self.lower_left.x
-            and pt.x < self.upper_right.x
-            and pt.y > self.lower_left.y
-            and pt.y < self.upper_right.y
+            self.lower_left.x <= pt.x <= self.upper_right.x
+            and self.lower_left.y <= pt.y <= self.upper_right.y
         )
 
 
