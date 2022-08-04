@@ -99,6 +99,14 @@ class Viewport:
     def inclusive_bottom(self) -> int:
         return self.lower_left.y
 
+    @property
+    def buffer_view(self) -> npt.NDArray[cc.ColorId]:
+        buffer = self.device.raw_buffer
+        return buffer[
+            self.inclusive_bottom : self.exclusive_top,
+            self.inclusive_left : self.exclusive_right,
+        ]
+
     def __contains__(self, pt: DevicePoint) -> bool:
         return (
             self.inclusive_left <= pt.x < self.exclusive_right
@@ -223,6 +231,54 @@ def draw_polygon(
         dev_a = normalized_point_to_device_point(a, port)
         dev_b = normalized_point_to_device_point(b, port)
         draw_line_bresenham(dev_a, dev_b, color_id, port)
+
+
+def _flood_fill(
+    seed: DevicePoint,
+    new_color: cc.ColorId,
+    border_color: cc.ColorId,
+    buffer: npt.NDArray[cc.ColorId],
+) -> None:
+
+    to_visit = [(seed.x, seed.y)]
+    height, width = buffer.shape
+
+    while to_visit:
+        x, y = to_visit.pop()
+
+        if not (0 < x < width):
+            continue
+        if not (0 < y < height):
+            continue
+        if buffer[y, x] in (new_color, border_color):
+            continue
+
+        buffer[y, x] = new_color
+        to_visit.append((x - 1, y))
+        to_visit.append((x + 1, y))
+        to_visit.append((x, y - 1))
+        to_visit.append((x, y + 1))
+
+
+def fill_polygon_flood(
+    poly: list[cu.NormalizedPoint2D],
+    seed: cu.NormalizedPoint2D,
+    color_id: cc.ColorId,
+    port: Viewport,
+) -> None:
+    fake_color = cc.ColorId(-1)
+    draw_polygon(poly, port, fake_color)
+
+    buffer = port.buffer_view
+    device_seed = normalized_point_to_device_point(seed, port)
+    _flood_fill(
+        device_seed,
+        new_color=fake_color,
+        border_color=fake_color,
+        buffer=buffer,
+    )
+
+    buffer[buffer == fake_color] = color_id
 
 
 def _device_to_surface(

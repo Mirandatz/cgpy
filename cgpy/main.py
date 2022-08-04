@@ -159,10 +159,37 @@ def exemplo3() -> None:
     cd.show_device(dev, palette)
 
 
+def exemplo_floodfill() -> None:
+    num_columns = 1000
+    num_rows = 200
+    dev = cd.Device(num_columns=num_columns, num_rows=num_rows)
+    port = cd.Viewport(
+        lower_left=cd.DevicePoint(1, 1),
+        num_columns=num_columns - 1,
+        num_rows=num_rows - 1,
+        device=dev,
+    )
+
+    palette = [
+        cc.Color(0, 0, 0),
+        cc.Color(1, 0, 0),
+        cc.Color(0, 1, 0),
+        cc.Color(0, 0, 1),
+        cc.Color(0.4, 0.3, 1),
+        cc.Color(0.8, 0.8, 0.8),
+        cc.Color(1, 1, 1),
+    ]
+
+    cd._flood_fill(cd.DevicePoint(5, 5), cc.ColorId(3), cc.ColorId(3), port.buffer_view)
+
+    cd.show_device(dev, palette, 2000)
+
+
 def main() -> None:
     # exemplo1()
     # exemplo2()
-    exemplo3()
+    # exemplo3()
+    exemplo_floodfill()
 
 
 if __name__ == "__main__":
