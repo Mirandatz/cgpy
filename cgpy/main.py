@@ -1,5 +1,6 @@
 import cgpy.colors as cc
 import cgpy.devices as cd
+import cgpy.lin_alg as cl
 import cgpy.universes as cu
 
 
@@ -99,9 +100,68 @@ def exemplo2() -> None:
     cd.show_device(dev, palette, close_after_milliseconds=2000)
 
 
+def exemplo3() -> None:
+    dev = cd.Device(num_columns=800, num_rows=600)
+    palette = [
+        cc.Color(0, 0, 0),
+        cc.Color(1, 0, 0),
+        cc.Color(0, 1, 0),
+        cc.Color(0, 0, 1),
+        cc.Color(0.4, 0.3, 1),
+        cc.Color(0.8, 0.8, 0.8),
+        cc.Color(1, 1, 1),
+    ]
+
+    poly1 = [
+        cu.Point2D(-9, -8),
+        cu.Point2D(-7, -3),
+        cu.Point2D(-4, -4),
+        cu.Point2D(-3, -6),
+        cu.Point2D(-6, -9),
+    ]
+
+    poly2 = [
+        cu.Point2D(-6, -2),
+        cu.Point2D(-1, -2),
+        cu.Point2D(-1, -6),
+        cu.Point2D(-6, -6),
+    ]
+
+    win = cu.Window(
+        lower_left=cu.Point2D(-10, -10),
+        upper_right=cu.Point2D(10, 10),
+    )
+
+    port = cd.Viewport(
+        lower_left=cd.DevicePoint(0, 0),
+        num_columns=800,
+        num_rows=600,
+        device=dev,
+    )
+
+    npoly1 = cu.normalize_polygon(poly1, win)
+    cd.draw_polygon(npoly1, port, cc.ColorId(1))
+
+    npoly2 = cu.normalize_polygon(poly2, win)
+    cd.draw_polygon(npoly2, port, cc.ColorId(3))
+
+    translate = cl.make_translation(10, 10)
+    poly3 = cl.transform_polygon2d(poly1, translate)
+    npoly3 = cu.normalize_polygon(poly3, win)
+    cd.draw_polygon(npoly3, port, cc.ColorId(2))
+
+    rotate = cl.make_counterclockwise_rotation(45)
+    poly4 = cl.transform_polygon2d(poly2, rotate)
+    npoly4 = cu.normalize_polygon(poly4, win)
+    cd.draw_polygon(npoly4, port, cc.ColorId(4))
+
+    cd.show_device(dev, palette)
+
+
 def main() -> None:
-    exemplo1()
-    exemplo2()
+    # exemplo1()
+    # exemplo2()
+    exemplo3()
 
 
 if __name__ == "__main__":
