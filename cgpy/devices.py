@@ -155,16 +155,13 @@ def normalized_point_to_device_point(
     return DevicePoint(x=port.lower_left.x + x_offset, y=port.lower_left.y + y_offset)
 
 
-def _draw_vertical_line(
-    pt0: DevicePoint, pt1: DevicePoint, color_id: cc.ColorId, port: Viewport
-) -> None:
-    assert pt0 in port
-    assert pt1 in port
-    assert pt0.x == pt1.x
-
-    x = pt0.x
-    for y in range(min(pt0.y, pt1.y), max(pt0.y, pt1.y) + 1):
-        port.set(x=x, y=y, color_id=color_id)
+def draw_viewport(port: Viewport, color_id: cc.ColorId) -> None:
+    for x in range(0, port.num_columns):
+        port.set(x=x, y=port.inclusive_bottom, color_id=color_id)
+        port.set(x=x, y=port.exclusive_top - 1, color_id=color_id)
+    for y in range(0, port.num_rows):
+        port.set(x=port.inclusive_left, y=y, color_id=color_id)
+        port.set(x=port.exclusive_right - 1, y=y, color_id=color_id)
 
 
 def draw_line_bresenham(

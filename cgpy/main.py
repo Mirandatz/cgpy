@@ -155,6 +155,7 @@ def exemplo3() -> None:
     npoly4 = cu.normalize_polygon(poly4, win)
     cd.draw_polygon(npoly4, port, cc.ColorId(4))
 
+    cd.draw_viewport(port, cc.ColorId(len(palette) - 1))
     cd.show_device(dev, palette)
 
 
