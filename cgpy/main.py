@@ -286,6 +286,29 @@ def exemplo_3d() -> None:
         npoly = cu.normalize_polygon(ughz, window)
         cd.draw_polygon(npoly, port1, cc.ColorId(1))
 
+    # port 3
+    observer_3 = cu.create_observer_transformation_matrix(
+        cu.make_vector4(1, 1, 1),
+        cu.make_vector4(1, -1, -1),
+        cu.make_vector4(0, 0, 0),
+    )
+    obj_for_observer_3 = cu.transform_object3d(objected_3d, observer_3)
+
+    projected_3 = cu.perspective_project_object(obj_for_observer_3, zpp=zpp, zcp=zcp)
+    object_2d_3 = cu.object3d_to_object2d(projected_3)
+
+    port3 = cd.Viewport(
+        lower_left=cd.DevicePoint(400 - 1, 300 - 1),
+        num_columns=device.num_columns // 2,
+        num_rows=device.num_rows // 2,
+        device=device,
+    )
+
+    for poly in object_2d_3:
+        ughz = [cu.Point2D(pt[0], pt[1]) for pt in poly]
+        npoly = cu.normalize_polygon(ughz, window)
+        cd.draw_polygon(npoly, port3, cc.ColorId(1))
+
     cd.show_device(device, palette, close_after_milliseconds=10000)
 
 
