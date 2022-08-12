@@ -185,11 +185,116 @@ def exemplo_floodfill() -> None:
     cd.show_device(dev, palette, 2000)
 
 
+def exemplo_3d() -> None:
+    window = cu.Window(
+        lower_left=cu.Point2D(-30, -30),
+        upper_right=cu.Point2D(30, 30),
+    )
+
+    device = cd.Device(num_columns=800, num_rows=600)
+
+    palette = [
+        cc.Color(0, 0, 0),
+        cc.Color(1, 0, 0),
+        cc.Color(0, 1, 0),
+        cc.Color(0, 0, 1),
+        cc.Color(0.4, 0.3, 1),
+        cc.Color(0.8, 0.8, 0.8),
+        cc.Color(1, 1, 1),
+    ]
+
+    face0 = [
+        cu.make_vector4(10.0, 10.0, 0.0),
+        cu.make_vector4(10.0, 0.0, 15.0),
+        cu.make_vector4(10.0, -10.0, 0.0),
+    ]
+
+    face1 = [
+        cu.make_vector4(-10.0, 10.0, 0.0),
+        cu.make_vector4(-10.0, 0.0, 15.0),
+        cu.make_vector4(-10.0, -10.0, 0.0),
+    ]
+
+    face2 = [
+        cu.make_vector4(10.0, 10.0, 0.0),
+        cu.make_vector4(10.0, 0.0, 15.0),
+        cu.make_vector4(-10.0, 0.0, 15.0),
+        cu.make_vector4(-10.0, 10.0, 0.0),
+    ]
+
+    face3 = [
+        cu.make_vector4(10.0, 0.0, 15.0),
+        cu.make_vector4(10.0, -10.0, 0.0),
+        cu.make_vector4(-10.0, -10.0, 0.0),
+        cu.make_vector4(-10.0, 0.0, 15.0),
+    ]
+
+    face4 = [
+        cu.make_vector4(10.0, 10.0, 0.0),
+        cu.make_vector4(10.0, -10.0, 0.0),
+        cu.make_vector4(-10.0, -10.0, 0.0),
+        cu.make_vector4(-10.0, 10.0, 0.0),
+    ]
+
+    objected_3d = [face0, face1, face2, face3, face4]
+    zpp = 40
+    zcp = -45
+
+    # port 0
+    observer_0 = cu.create_observer_transformation_matrix(
+        cu.make_vector4(0, 0, 1),
+        cu.make_vector4(1, 0, 0),
+        cu.make_vector4(0, 0, 0),
+    )
+    obj_for_observer_0 = cu.transform_object3d(objected_3d, observer_0)
+
+    projected_0 = cu.perspective_project_object(obj_for_observer_0, zpp=zpp, zcp=zcp)
+    object_2d_0 = cu.object3d_to_object2d(projected_0)
+
+    port0 = cd.Viewport(
+        lower_left=cd.DevicePoint(0, 0),
+        num_columns=device.num_columns // 2,
+        num_rows=device.num_rows // 2,
+        device=device,
+    )
+
+    for poly in object_2d_0:
+        ughz = [cu.Point2D(pt[0], pt[1]) for pt in poly]
+        npoly = cu.normalize_polygon(ughz, window)
+        cd.draw_polygon(npoly, port0, cc.ColorId(1))
+
+    # port 1
+    observer_1 = cu.create_observer_transformation_matrix(
+        cu.make_vector4(0, 0, 1),
+        cu.make_vector4(0, 1, 0),
+        cu.make_vector4(0, 0, 0),
+    )
+    obj_for_observer_1 = cu.transform_object3d(objected_3d, observer_1)
+
+    projected_1 = cu.perspective_project_object(obj_for_observer_1, zpp=zpp, zcp=zcp)
+    object_2d_1 = cu.object3d_to_object2d(projected_1)
+
+    port1 = cd.Viewport(
+        lower_left=cd.DevicePoint(400 - 1, 0),
+        num_columns=device.num_columns // 2,
+        num_rows=device.num_rows // 2,
+        device=device,
+    )
+
+    for poly in object_2d_1:
+        ughz = [cu.Point2D(pt[0], pt[1]) for pt in poly]
+        npoly = cu.normalize_polygon(ughz, window)
+        cd.draw_polygon(npoly, port1, cc.ColorId(1))
+
+    cd.show_device(device, palette, close_after_milliseconds=10000)
+
+
 def main() -> None:
-    exemplo1()
-    exemplo2()
-    exemplo3()
-    exemplo_floodfill()
+    # exemplo1()
+    # exemplo2()
+    # exemplo3()
+    # exemplo_floodfill()
+    exemplo_3d()
 
 
 if __name__ == "__main__":

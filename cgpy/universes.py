@@ -5,9 +5,16 @@ import numpy as np
 import numpy.typing as npt
 
 FloatArray = npt.NDArray[np.float64]
+
+# 2d
+Vector3 = FloatArray
+Matrix3 = FloatArray
+Polygon = list[Vector3]
+Object2D = list[Polygon]
+
+# 3d
 Vector4 = FloatArray
 Matrix4x4 = FloatArray
-
 Face = list[Vector4]
 Object3D = list[Face]
 
@@ -162,7 +169,7 @@ def perspective_project_point(
     zcp: float,
 ) -> Vector4:
     validate_vector4(pt)
-    projected: Vector4 = pt * (zpp - zcp) / (pt[3, 0] - zcp)
+    projected: Vector4 = pt * (zpp - zcp) / (pt[2, 0] - zcp)
     projected[2] = zpp
     projected[3] = 1
 
@@ -181,14 +188,34 @@ def perspective_project_object(obj: Object3D, zpp: float, zcp: float) -> Object3
     return [perspective_project_face(f, zpp=zpp, zcp=zcp) for f in obj]
 
 
-def main() -> None:
-    matrix = create_observer_transformation_matrix(
-        normal=make_vector4(0, 0, 1),
-        up=make_vector4(0, 1, 0),
-        offset=make_vector4(0, 0, 0),
-    )
-    print(matrix)
+def face_to_polygon(face: Face) -> Polygon:
+    poly = []
+
+    for vec4 in face:
+        validate_vector4(vec4)
+        poly.append(
+            make_vector3(
+                x=vec4[0],
+                y=vec4[1],
+            )
+        )
+
+    return poly
 
 
-if __name__ == "__main__":
-    main()
+def object3d_to_object2d(obj: Object3D) -> Object2D:
+    return [face_to_polygon(f) for f in obj]
+
+
+def make_vector3(x: float, y: float) -> Vector3:
+    return np.asfarray((x, y, 1)).reshape(3, 1)
+
+
+def normalize_vector3(pt: Vector3, win: Window) -> Vector3:
+    validate_vector3(pt)
+
+    raise NotImplementedError()
+
+
+def normalize_polygon2(poly: Polygon, win: Window) -> Polygon:
+    return [normalize_vector3(pt, win) for pt in poly]
