@@ -1,4 +1,10 @@
 import dataclasses
+import typing
+
+import numpy as np
+import numpy.typing as npt
+
+FloatArray = npt.NDArray[np.float64]
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -52,3 +58,86 @@ def _normalize_point_naive(pt: Point2D, win: Window) -> NormalizedPoint2D:
 
 def normalize_polygon(poly: list[Point2D], win: Window) -> list[NormalizedPoint2D]:
     return [_normalize_point_naive(p, win) for p in poly]
+
+
+def make_vector4(x: float, y: float, z: float) -> FloatArray:
+    return np.asfarray((x, y, z, 1)).reshape(4, 1)
+
+
+def validate_vector4(vec: typing.Any) -> None:
+    assert isinstance(vec, np.ndarray)
+    assert vec.shape == (4, 1)
+    assert vec.dtype == np.float64
+
+
+def make_versor(vec: npt.ArrayLike) -> FloatArray:
+    """
+    Retorna um vetor com mesma direção que `vec`,
+    mas módulo=1 e coordenada homogenea=1.
+    """
+
+    direction = np.asfarray(vec)[:3]  # x, y, z
+    norm = np.linalg.norm(direction)
+
+    versor = np.empty(shape=(4, 1))
+    versor[:3] = (direction / norm).reshape((3, 1))
+    versor[3] = 1
+
+    return versor
+
+
+def create_observer_transformation_matrix(
+    normal: FloatArray,
+    up: FloatArray,
+    offset: FloatArray,
+) -> FloatArray:
+    """
+    Compute a matriz de mudança de base (4x4) para um observador
+    com descrito por `normal`, `up`, e `offset`.
+    """
+    validate_vector4(normal)
+    validate_vector4(up)
+    validate_vector4(offset)
+
+    w = make_versor(normal)
+
+    u = make_versor(
+        np.cross(
+            up[:3].flatten(),
+            w[:3].flatten(),
+        )
+    )
+
+    v = np.cross(
+        w[:3].flatten(),
+        u[:3].flatten(),
+    )
+
+    matrix = np.empty(shape=(4, 4))
+
+    matrix[0, :3] = u[:3].flatten()
+    matrix[0, 3] = offset[0]
+
+    matrix[1, :3] = v[:3].flatten()
+    matrix[1, 3] = offset[1]
+
+    matrix[2, :3] = w[:3].flatten()
+    matrix[2, 3] = offset[2]
+
+    matrix[3, :3] = 0
+    matrix[3, 3] = 1
+
+    return matrix
+
+
+def main() -> None:
+    matrix = create_observer_transformation_matrix(
+        normal=make_vector4(0, 0, 1),
+        up=make_vector4(0, 1, 0),
+        offset=make_vector4(0, 0, 0),
+    )
+    print(matrix)
+
+
+if __name__ == "__main__":
+    main()

@@ -186,9 +186,9 @@ def exemplo_floodfill() -> None:
 
 
 def main() -> None:
-    # exemplo1()
-    # exemplo2()
-    # exemplo3()
+    exemplo1()
+    exemplo2()
+    exemplo3()
     exemplo_floodfill()
 
 
