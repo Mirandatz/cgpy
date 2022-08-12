@@ -5,6 +5,11 @@ import numpy as np
 import numpy.typing as npt
 
 FloatArray = npt.NDArray[np.float64]
+Vector4 = FloatArray
+Matrix4x4 = FloatArray
+
+Face = list[Vector4]
+Object3D = list[Face]
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -60,7 +65,7 @@ def normalize_polygon(poly: list[Point2D], win: Window) -> list[NormalizedPoint2
     return [_normalize_point_naive(p, win) for p in poly]
 
 
-def make_vector4(x: float, y: float, z: float) -> FloatArray:
+def make_vector4(x: float, y: float, z: float) -> Vector4:
     return np.asfarray((x, y, z, 1)).reshape(4, 1)
 
 
@@ -70,7 +75,13 @@ def validate_vector4(vec: typing.Any) -> None:
     assert vec.dtype == np.float64
 
 
-def make_versor(vec: npt.ArrayLike) -> FloatArray:
+def validate_matrix4(matrix: typing.Any) -> None:
+    assert isinstance(matrix, np.ndarray)
+    assert matrix.shape == (4, 4)
+    assert matrix.dtype == np.float64
+
+
+def make_versor(vec: npt.ArrayLike) -> Vector4:
     """
     Retorna um vetor com mesma direção que `vec`,
     mas módulo=1 e coordenada homogenea=1.
@@ -87,10 +98,10 @@ def make_versor(vec: npt.ArrayLike) -> FloatArray:
 
 
 def create_observer_transformation_matrix(
-    normal: FloatArray,
-    up: FloatArray,
-    offset: FloatArray,
-) -> FloatArray:
+    normal: Vector4,
+    up: Vector4,
+    offset: Vector4,
+) -> Matrix4x4:
     """
     Compute a matriz de mudança de base (4x4) para um observador
     com descrito por `normal`, `up`, e `offset`.
@@ -128,6 +139,21 @@ def create_observer_transformation_matrix(
     matrix[3, 3] = 1
 
     return matrix
+
+
+def transform_point3d(pt: Vector4, trans: Matrix4x4) -> Vector4:
+    return trans @ pt
+
+
+def transform_face(face: Face, trans: Matrix4x4) -> Face:
+    return [transform_point3d(pt, trans) for pt in face]
+
+
+def transform_object3d(
+    obj: Object3D,
+    trans: Matrix4x4,
+) -> Object3D:
+    return [transform_face(pt, trans) for pt in obj]
 
 
 def main() -> None:
