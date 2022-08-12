@@ -156,6 +156,31 @@ def transform_object3d(
     return [transform_face(pt, trans) for pt in obj]
 
 
+def perspective_project_point(
+    pt: Vector4,
+    zpp: float,
+    zcp: float,
+) -> Vector4:
+    validate_vector4(pt)
+    projected: Vector4 = pt * (zpp - zcp) / (pt[3, 0] - zcp)
+    projected[2] = zpp
+    projected[3] = 1
+
+    return projected
+
+
+def perspective_project_face(
+    face: Face,
+    zpp: float,
+    zcp: float,
+) -> Face:
+    return [perspective_project_point(pt, zpp=zpp, zcp=zcp) for pt in face]
+
+
+def perspective_project_object(obj: Object3D, zpp: float, zcp: float) -> Object3D:
+    return [perspective_project_face(f, zpp=zpp, zcp=zcp) for f in obj]
+
+
 def main() -> None:
     matrix = create_observer_transformation_matrix(
         normal=make_vector4(0, 0, 1),
