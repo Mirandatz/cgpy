@@ -341,13 +341,16 @@ def exemplo_teapot() -> None:
     ]
 
     for step in range(200):
+        rotation_matrix = cu.make_y_rotation_3d(step * 15)
+        rotated_teapot = cu.transform_object(teapot, rotation_matrix)
+
         observer = cu.create_observer_transformation_matrix(
             normal=cu.make_vector4(0, 0, 1),
             up=cu.make_vector4(0, 1, 0),
             offset=cu.make_vector4(0, 0, 0),
         )
 
-        obj_for_observer_1 = cu.transform_object(teapot, observer)
+        obj_for_observer_1 = cu.transform_object(rotated_teapot, observer)
         zpp = 40
         zcp = -45
 

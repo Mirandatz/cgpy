@@ -266,3 +266,27 @@ def transform_polygon(
         trans_poly.append(trans_vec)
 
     return Polygon(trans_poly)
+
+
+def make_x_rotation_3d(degrees: float) -> Matrix4x4:
+    radians = degrees * np.pi / 180
+    matrix = np.eye(4, 4)
+
+    matrix[0, 0] = np.cos(radians)
+    matrix[0, 2] = np.sin(radians)
+    matrix[2, 0] = -np.sin(radians)
+    matrix[2, 2] = np.cos(radians)
+
+    return Matrix4x4(matrix)
+
+
+def make_y_rotation_3d(degrees: float) -> Matrix4x4:
+    radians = degrees * np.pi / 180
+    matrix = np.eye(4, 4)
+
+    matrix[1, 1] = np.cos(radians)
+    matrix[1, 2] = -np.sin(radians)
+    matrix[2, 1] = np.sin(radians)
+    matrix[2, 2] = np.cos(radians)
+
+    return Matrix4x4(matrix)
