@@ -1,6 +1,5 @@
 import cgpy.colors as cc
 import cgpy.devices as cd
-import cgpy.lin_alg as cl
 import cgpy.universes as cu
 
 
@@ -21,8 +20,10 @@ def exemplo1() -> None:
     ]
 
     win = cu.Window(
-        lower_left=cu.Point2D(-10, -10),
-        upper_right=cu.Point2D(0, 0),
+        min_x=-10,
+        min_y=-10,
+        max_x=0,
+        max_y=0,
     )
 
     npoly1 = cu.normalize_polygon2(poly1, win)
@@ -67,8 +68,10 @@ def exemplo2() -> None:
     ]
 
     win = cu.Window(
-        lower_left=cu.Point2D(-10, -10),
-        upper_right=cu.Point2D(0, 0),
+        min_x=-10,
+        min_y=-10,
+        max_x=0,
+        max_y=0,
     )
 
     npoly1 = cu.normalize_polygon2(poly1, win)
@@ -128,8 +131,10 @@ def exemplo3() -> None:
     ]
 
     win = cu.Window(
-        lower_left=cu.Point2D(-10, -10),
-        upper_right=cu.Point2D(10, 10),
+        min_x=-10,
+        min_y=-10,
+        max_x=10,
+        max_y=10,
     )
 
     port = cd.Viewport(
@@ -145,13 +150,13 @@ def exemplo3() -> None:
     npoly2 = cu.normalize_polygon2(poly2, win)
     cd.draw_polygon(npoly2, port, cc.ColorId(3))
 
-    translate = cl.make_translation(10, 10)
-    poly3 = cl.transform_polygon2d(poly1, translate)
+    translate = cu.make_translation_2d(10, 10)
+    poly3 = cu.transform_polygon(poly1, translate)
     npoly3 = cu.normalize_polygon2(poly3, win)
     cd.draw_polygon(npoly3, port, cc.ColorId(2))
 
-    rotate = cl.make_counterclockwise_rotation(45)
-    poly4 = cl.transform_polygon2d(poly2, rotate)
+    rotate = cu.make_counterclockwise_rotation_2d(45)
+    poly4 = cu.transform_polygon(poly2, rotate)
     npoly4 = cu.normalize_polygon2(poly4, win)
     cd.draw_polygon(npoly4, port, cc.ColorId(4))
 
@@ -187,8 +192,10 @@ def exemplo_floodfill() -> None:
 
 def exemplo_3d() -> None:
     window = cu.Window(
-        lower_left=cu.Point2D(-30, -30),
-        upper_right=cu.Point2D(30, 30),
+        min_x=-30,
+        min_y=-30,
+        max_x=30,
+        max_y=30,
     )
 
     device = cd.Device(num_columns=800, num_rows=600)
@@ -259,8 +266,7 @@ def exemplo_3d() -> None:
     )
 
     for poly in object_2d_0:
-        ughz = [cu.Point2D(pt[0], pt[1]) for pt in poly]
-        npoly = cu.normalize_polygon(ughz, window)
+        npoly = cu.normalize_polygon2(poly, window)
         cd.draw_polygon(npoly, port0, cc.ColorId(1))
 
     # port 1
@@ -282,8 +288,7 @@ def exemplo_3d() -> None:
     )
 
     for poly in object_2d_1:
-        ughz = [cu.Point2D(pt[0], pt[1]) for pt in poly]
-        npoly = cu.normalize_polygon(ughz, window)
+        npoly = cu.normalize_polygon2(poly, window)
         cd.draw_polygon(npoly, port1, cc.ColorId(1))
 
     # port 3
@@ -305,18 +310,17 @@ def exemplo_3d() -> None:
     )
 
     for poly in object_2d_3:
-        ughz = [cu.Point2D(pt[0], pt[1]) for pt in poly]
-        npoly = cu.normalize_polygon(ughz, window)
+        npoly = cu.normalize_polygon2(poly, window)
         cd.draw_polygon(npoly, port3, cc.ColorId(1))
 
     cd.show_device(device, palette, close_after_milliseconds=10000)
 
 
 def main() -> None:
-    # exemplo1()
-    # exemplo2()
-    # exemplo3()
-    # exemplo_floodfill()
+    exemplo1()
+    exemplo2()
+    exemplo3()
+    exemplo_floodfill()
     exemplo_3d()
 
 

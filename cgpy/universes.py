@@ -23,33 +23,31 @@ Object3D = list[Face]
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
-class Point2D:
-    x: float
-    y: float
-
-
-@dataclasses.dataclass(frozen=True, slots=True)
 class Window:
-    lower_left: Point2D
-    upper_right: Point2D
+    min_x: float
+    min_y: float
+    max_x: float
+    max_y: float
 
     def __post_init__(self) -> None:
-        assert self.lower_left.x < self.upper_right.x
-        assert self.lower_left.y < self.upper_right.y
+        assert self.min_x < self.max_x
+        assert self.min_y < self.max_y
 
-    def __contains__(self, pt: Point2D) -> bool:
-        return (
-            self.lower_left.x <= pt.x <= self.upper_right.x
-            and self.lower_left.y <= pt.y <= self.upper_right.y
-        )
+    def __contains__(self, pt: Vector3) -> bool:
+        validate_vector3(pt)
+
+        x: float = pt[0, 0]
+        y: float = pt[1, 0]
+
+        return (self.min_x <= x <= self.max_x) and (self.min_y <= y <= self.max_y)
 
     @property
     def width(self) -> float:
-        return self.upper_right.x - self.lower_left.x
+        return self.max_x - self.min_x
 
     @property
     def height(self) -> float:
-        return self.upper_right.y - self.lower_left.y
+        return self.max_y - self.min_y
 
 
 def make_vector4(x: float, y: float, z: float) -> Vector4:
@@ -206,8 +204,8 @@ def normalize_vector3_naive(pt: Vector3, win: Window) -> NormalizedPoint:
     y = pt[1]
 
     normalized = make_vector3(
-        x=(x - win.lower_left.x) / win.width,
-        y=(y - win.lower_left.y) / win.height,
+        x=(x - win.min_x) / win.width,
+        y=(y - win.min_y) / win.height,
     )
 
     return NormalizedPoint(normalized)
