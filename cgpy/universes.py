@@ -61,7 +61,7 @@ def validate_vector4(vec: typing.Any) -> None:
     assert vec.dtype == np.float64
 
 
-def validate_matrix4(matrix: typing.Any) -> None:
+def validate_matrix4x4(matrix: typing.Any) -> None:
     assert isinstance(matrix, np.ndarray)
     assert matrix.shape == (4, 4)
     assert matrix.dtype == np.float64
@@ -127,15 +127,15 @@ def create_observer_transformation_matrix(
     return Matrix4x4(matrix)
 
 
-def transform_point3d(pt: Vector4, trans: Matrix4x4) -> Vector4:
+def transform_point_3d(pt: Vector4, trans: Matrix4x4) -> Vector4:
     return Vector4(trans @ pt)
 
 
 def transform_face(face: Face, trans: Matrix4x4) -> Face:
-    return [transform_point3d(pt, trans) for pt in face]
+    return [transform_point_3d(pt, trans) for pt in face]
 
 
-def transform_object3d(
+def transform_object(
     obj: Object3D,
     trans: Matrix4x4,
 ) -> Object3D:
@@ -217,7 +217,7 @@ def validate_normalized_point(pt: Vector3) -> None:
     assert ((0 <= pt) & (pt <= 1)).all()
 
 
-def normalize_polygon2(poly: Polygon, win: Window) -> NormalizedPolygon:
+def normalize_polygon(poly: Polygon, win: Window) -> NormalizedPolygon:
     return [normalize_vector3_naive(pt, win) for pt in poly]
 
 

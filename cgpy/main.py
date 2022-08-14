@@ -26,8 +26,8 @@ def exemplo1() -> None:
         max_y=0,
     )
 
-    npoly1 = cu.normalize_polygon2(poly1, win)
-    npoly2 = cu.normalize_polygon2(poly2, win)
+    npoly1 = cu.normalize_polygon(poly1, win)
+    npoly2 = cu.normalize_polygon(poly2, win)
 
     dev = cd.Device(num_columns=640, num_rows=480)
 
@@ -74,8 +74,8 @@ def exemplo2() -> None:
         max_y=0,
     )
 
-    npoly1 = cu.normalize_polygon2(poly1, win)
-    npoly2 = cu.normalize_polygon2(poly2, win)
+    npoly1 = cu.normalize_polygon(poly1, win)
+    npoly2 = cu.normalize_polygon(poly2, win)
 
     dev = cd.Device(num_columns=640, num_rows=480)
 
@@ -144,20 +144,20 @@ def exemplo3() -> None:
         device=dev,
     )
 
-    npoly1 = cu.normalize_polygon2(poly1, win)
+    npoly1 = cu.normalize_polygon(poly1, win)
     cd.draw_polygon(npoly1, port, cc.ColorId(1))
 
-    npoly2 = cu.normalize_polygon2(poly2, win)
+    npoly2 = cu.normalize_polygon(poly2, win)
     cd.draw_polygon(npoly2, port, cc.ColorId(3))
 
     translate = cu.make_translation_2d(10, 10)
     poly3 = cu.transform_polygon(poly1, translate)
-    npoly3 = cu.normalize_polygon2(poly3, win)
+    npoly3 = cu.normalize_polygon(poly3, win)
     cd.draw_polygon(npoly3, port, cc.ColorId(2))
 
     rotate = cu.make_counterclockwise_rotation_2d(45)
     poly4 = cu.transform_polygon(poly2, rotate)
-    npoly4 = cu.normalize_polygon2(poly4, win)
+    npoly4 = cu.normalize_polygon(poly4, win)
     cd.draw_polygon(npoly4, port, cc.ColorId(4))
 
     cd.draw_viewport(port, cc.ColorId(len(palette) - 1))
@@ -253,7 +253,7 @@ def exemplo_3d() -> None:
         cu.make_vector4(1, 0, 0),
         cu.make_vector4(0, 0, 0),
     )
-    obj_for_observer_0 = cu.transform_object3d(objected_3d, observer_0)
+    obj_for_observer_0 = cu.transform_object(objected_3d, observer_0)
 
     projected_0 = cu.perspective_project_object(obj_for_observer_0, zpp=zpp, zcp=zcp)
     object_2d_0 = cu.object3d_to_object2d(projected_0)
@@ -266,7 +266,7 @@ def exemplo_3d() -> None:
     )
 
     for poly in object_2d_0:
-        npoly = cu.normalize_polygon2(poly, window)
+        npoly = cu.normalize_polygon(poly, window)
         cd.draw_polygon(npoly, port0, cc.ColorId(1))
 
     # port 1
@@ -275,7 +275,7 @@ def exemplo_3d() -> None:
         cu.make_vector4(0, 1, 0),
         cu.make_vector4(0, 0, 0),
     )
-    obj_for_observer_1 = cu.transform_object3d(objected_3d, observer_1)
+    obj_for_observer_1 = cu.transform_object(objected_3d, observer_1)
 
     projected_1 = cu.perspective_project_object(obj_for_observer_1, zpp=zpp, zcp=zcp)
     object_2d_1 = cu.object3d_to_object2d(projected_1)
@@ -288,7 +288,7 @@ def exemplo_3d() -> None:
     )
 
     for poly in object_2d_1:
-        npoly = cu.normalize_polygon2(poly, window)
+        npoly = cu.normalize_polygon(poly, window)
         cd.draw_polygon(npoly, port1, cc.ColorId(1))
 
     # port 3
@@ -297,7 +297,7 @@ def exemplo_3d() -> None:
         cu.make_vector4(1, -1, -1),
         cu.make_vector4(0, 0, 0),
     )
-    obj_for_observer_3 = cu.transform_object3d(objected_3d, observer_3)
+    obj_for_observer_3 = cu.transform_object(objected_3d, observer_3)
 
     projected_3 = cu.perspective_project_object(obj_for_observer_3, zpp=zpp, zcp=zcp)
     object_2d_3 = cu.object3d_to_object2d(projected_3)
@@ -310,7 +310,7 @@ def exemplo_3d() -> None:
     )
 
     for poly in object_2d_3:
-        npoly = cu.normalize_polygon2(poly, window)
+        npoly = cu.normalize_polygon(poly, window)
         cd.draw_polygon(npoly, port3, cc.ColorId(1))
 
     cd.show_device(device, palette, close_after_milliseconds=10000)
