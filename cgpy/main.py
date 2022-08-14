@@ -6,18 +6,18 @@ import cgpy.universes as cu
 
 def exemplo1() -> None:
     poly1 = [
-        cu.Point2D(-9, -8),
-        cu.Point2D(-7, -3),
-        cu.Point2D(-4, -4),
-        cu.Point2D(-3, -6),
-        cu.Point2D(-6, -9),
+        cu.make_vector3(-9, -8),
+        cu.make_vector3(-7, -3),
+        cu.make_vector3(-4, -4),
+        cu.make_vector3(-3, -6),
+        cu.make_vector3(-6, -9),
     ]
 
     poly2 = [
-        cu.Point2D(-6, -2),
-        cu.Point2D(-1, -2),
-        cu.Point2D(-1, -6),
-        cu.Point2D(-6, -6),
+        cu.make_vector3(-6, -2),
+        cu.make_vector3(-1, -2),
+        cu.make_vector3(-1, -6),
+        cu.make_vector3(-6, -6),
     ]
 
     win = cu.Window(
@@ -25,8 +25,8 @@ def exemplo1() -> None:
         upper_right=cu.Point2D(0, 0),
     )
 
-    npoly1 = cu.normalize_polygon(poly1, win)
-    npoly2 = cu.normalize_polygon(poly2, win)
+    npoly1 = cu.normalize_polygon2(poly1, win)
+    npoly2 = cu.normalize_polygon2(poly2, win)
 
     dev = cd.Device(num_columns=640, num_rows=480)
 
@@ -52,18 +52,18 @@ def exemplo1() -> None:
 
 def exemplo2() -> None:
     poly1 = [
-        cu.Point2D(-9, -8),
-        cu.Point2D(-7, -3),
-        cu.Point2D(-4, -4),
-        cu.Point2D(-3, -6),
-        cu.Point2D(-6, -9),
+        cu.make_vector3(-9, -8),
+        cu.make_vector3(-7, -3),
+        cu.make_vector3(-4, -4),
+        cu.make_vector3(-3, -6),
+        cu.make_vector3(-6, -9),
     ]
 
     poly2 = [
-        cu.Point2D(-6, -2),
-        cu.Point2D(-1, -2),
-        cu.Point2D(-1, -6),
-        cu.Point2D(-6, -6),
+        cu.make_vector3(-6, -2),
+        cu.make_vector3(-1, -2),
+        cu.make_vector3(-1, -6),
+        cu.make_vector3(-6, -6),
     ]
 
     win = cu.Window(
@@ -71,8 +71,8 @@ def exemplo2() -> None:
         upper_right=cu.Point2D(0, 0),
     )
 
-    npoly1 = cu.normalize_polygon(poly1, win)
-    npoly2 = cu.normalize_polygon(poly2, win)
+    npoly1 = cu.normalize_polygon2(poly1, win)
+    npoly2 = cu.normalize_polygon2(poly2, win)
 
     dev = cd.Device(num_columns=640, num_rows=480)
 
@@ -113,18 +113,18 @@ def exemplo3() -> None:
     ]
 
     poly1 = [
-        cu.Point2D(-9, -8),
-        cu.Point2D(-7, -3),
-        cu.Point2D(-4, -4),
-        cu.Point2D(-3, -6),
-        cu.Point2D(-6, -9),
+        cu.make_vector3(-9, -8),
+        cu.make_vector3(-7, -3),
+        cu.make_vector3(-4, -4),
+        cu.make_vector3(-3, -6),
+        cu.make_vector3(-6, -9),
     ]
 
     poly2 = [
-        cu.Point2D(-6, -2),
-        cu.Point2D(-1, -2),
-        cu.Point2D(-1, -6),
-        cu.Point2D(-6, -6),
+        cu.make_vector3(-6, -2),
+        cu.make_vector3(-1, -2),
+        cu.make_vector3(-1, -6),
+        cu.make_vector3(-6, -6),
     ]
 
     win = cu.Window(
@@ -139,20 +139,20 @@ def exemplo3() -> None:
         device=dev,
     )
 
-    npoly1 = cu.normalize_polygon(poly1, win)
+    npoly1 = cu.normalize_polygon2(poly1, win)
     cd.draw_polygon(npoly1, port, cc.ColorId(1))
 
-    npoly2 = cu.normalize_polygon(poly2, win)
+    npoly2 = cu.normalize_polygon2(poly2, win)
     cd.draw_polygon(npoly2, port, cc.ColorId(3))
 
     translate = cl.make_translation(10, 10)
     poly3 = cl.transform_polygon2d(poly1, translate)
-    npoly3 = cu.normalize_polygon(poly3, win)
+    npoly3 = cu.normalize_polygon2(poly3, win)
     cd.draw_polygon(npoly3, port, cc.ColorId(2))
 
     rotate = cl.make_counterclockwise_rotation(45)
     poly4 = cl.transform_polygon2d(poly2, rotate)
-    npoly4 = cu.normalize_polygon(poly4, win)
+    npoly4 = cu.normalize_polygon2(poly4, win)
     cd.draw_polygon(npoly4, port, cc.ColorId(4))
 
     cd.draw_viewport(port, cc.ColorId(len(palette) - 1))

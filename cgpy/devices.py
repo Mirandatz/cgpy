@@ -152,13 +152,19 @@ def make_viewport_from_corners(
 
 
 def normalized_point_to_device_point(
-    pt: cu.NormalizedPoint2D, port: Viewport
+    pt: cu.NormalizedPoint,
+    port: Viewport,
 ) -> DevicePoint:
+    cu.validate_normalized_point(pt)
+
     column_range = port.num_columns - 1
     row_range = port.num_rows - 1
 
-    x_offset = int(pt.x * column_range)
-    y_offset = int(pt.y * row_range)
+    pt_x = pt[0, 0]
+    pt_y = pt[1, 0]
+
+    x_offset = int(pt_x * column_range)
+    y_offset = int(pt_y * row_range)
 
     return DevicePoint(x=port.lower_left.x + x_offset, y=port.lower_left.y + y_offset)
 
@@ -222,7 +228,9 @@ def draw_line_bresenham(
 
 
 def draw_polygon(
-    poly: list[cu.NormalizedPoint2D], port: Viewport, color_id: cc.ColorId
+    poly: list[cu.NormalizedPoint],
+    port: Viewport,
+    color_id: cc.ColorId,
 ) -> None:
     assert len(poly) >= 2
 
@@ -261,8 +269,8 @@ def _flood_fill(
 
 
 def fill_polygon_flood(
-    poly: list[cu.NormalizedPoint2D],
-    seed: cu.NormalizedPoint2D,
+    poly: list[cu.NormalizedPoint],
+    seed: cu.NormalizedPoint,
     color_id: cc.ColorId,
     port: Viewport,
 ) -> None:

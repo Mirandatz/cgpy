@@ -13,6 +13,7 @@ Polygon = list[Vector3]
 Object2D = list[Polygon]
 
 NormalizedPoint = typing.NewType("NormalizedPoint", Vector3)
+NormalizedPolygon = list[NormalizedPoint]
 
 # 3d
 Vector4 = typing.NewType("Vector4", FloatArray)
@@ -198,16 +199,18 @@ def validate_vector3(vec: Vector3) -> None:
     assert vec.dtype == np.float64
 
 
-def normalize_vector3_naive(pt: Vector3, win: Window) -> Vector3:
+def normalize_vector3_naive(pt: Vector3, win: Window) -> NormalizedPoint:
     validate_vector3(pt)
 
     x = pt[0]
     y = pt[1]
 
-    return make_vector3(
+    normalized = make_vector3(
         x=(x - win.lower_left.x) / win.width,
         y=(y - win.lower_left.y) / win.height,
     )
+
+    return NormalizedPoint(normalized)
 
 
 def validate_normalized_point(pt: Vector3) -> None:
@@ -216,5 +219,52 @@ def validate_normalized_point(pt: Vector3) -> None:
     assert ((0 <= pt) & (pt <= 1)).all()
 
 
-def normalize_polygon2(poly: Polygon, win: Window) -> Polygon:
+def normalize_polygon2(poly: Polygon, win: Window) -> NormalizedPolygon:
     return [normalize_vector3_naive(pt, win) for pt in poly]
+
+
+def make_translation_2d(delta_x: float, delta_y: float) -> Matrix3x3:
+    matrix = np.eye(3, 3)
+    matrix[0, 2] = delta_x
+    matrix[1, 2] = delta_y
+    return Matrix3x3(matrix)
+
+
+def make_counterclockwise_rotation_2d(degrees: float) -> Matrix3x3:
+    radians = degrees * np.pi / 180
+    matrix = np.eye(3, 3)
+    matrix[0, 0] = np.cos(radians)
+    matrix[0, 1] = -1 * np.sin(radians)
+    matrix[1, 0] = np.sin(radians)
+    matrix[1, 1] = np.cos(radians)
+
+    return Matrix3x3(matrix)
+
+
+def make_scale_2d(x_factor: float, y_factor: float) -> Matrix3x3:
+    matrix = np.eye(3, 3)
+    matrix[0, 0] = x_factor
+    matrix[1, 1] = y_factor
+
+    return Matrix3x3(matrix)
+
+
+def validate_matrix3x3(matrix: typing.Any) -> None:
+    assert isinstance(matrix, np.ndarray)
+    assert matrix.shape == (3, 3)
+    assert matrix.dtype == np.float64
+
+
+def transform_polygon(
+    polygon: Polygon,
+    trans: Matrix3x3,
+) -> Polygon:
+    validate_matrix3x3(trans)
+
+    trans_poly = []
+    for vec in polygon:
+        validate_vector3(vec)
+        trans_vec = Vector3(trans @ vec)
+        trans_poly.append(trans_vec)
+
+    return Polygon(trans_poly)
