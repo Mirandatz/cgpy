@@ -7,14 +7,16 @@ import numpy.typing as npt
 FloatArray = npt.NDArray[np.float64]
 
 # 2d
-Vector3 = FloatArray
-Matrix3 = FloatArray
+Vector3 = typing.NewType("Vector3", FloatArray)
+Matrix3x3 = typing.NewType("Matrix3x3", FloatArray)
 Polygon = list[Vector3]
 Object2D = list[Polygon]
 
+NormalizedPoint = typing.NewType("NormalizedPoint", Vector3)
+
 # 3d
-Vector4 = FloatArray
-Matrix4x4 = FloatArray
+Vector4 = typing.NewType("Vector4", FloatArray)
+Matrix4x4 = typing.NewType("Matrix4x4", FloatArray)
 Face = list[Vector4]
 Object3D = list[Face]
 
@@ -49,31 +51,9 @@ class Window:
         return self.upper_right.y - self.lower_left.y
 
 
-@dataclasses.dataclass(frozen=True, slots=True)
-class NormalizedPoint2D:
-    x: float
-    y: float
-
-    def __post_init__(self) -> None:
-        assert 0 <= self.x <= 1
-        assert 0 <= self.y <= 1
-
-
-def _normalize_point_naive(pt: Point2D, win: Window) -> NormalizedPoint2D:
-    assert pt in win
-
-    return NormalizedPoint2D(
-        x=(pt.x - win.lower_left.x) / win.width,
-        y=(pt.y - win.lower_left.y) / win.height,
-    )
-
-
-def normalize_polygon(poly: list[Point2D], win: Window) -> list[NormalizedPoint2D]:
-    return [_normalize_point_naive(p, win) for p in poly]
-
-
 def make_vector4(x: float, y: float, z: float) -> Vector4:
-    return np.asfarray((x, y, z, 1)).reshape(4, 1)
+    vec = np.asfarray((x, y, z, 1)).reshape(4, 1)
+    return Vector4(vec)
 
 
 def validate_vector4(vec: typing.Any) -> None:
@@ -101,7 +81,7 @@ def make_versor(vec: npt.ArrayLike) -> Vector4:
     versor[:3] = (direction / norm).reshape((3, 1))
     versor[3] = 1
 
-    return versor
+    return Vector4(versor)
 
 
 def create_observer_transformation_matrix(
@@ -145,11 +125,11 @@ def create_observer_transformation_matrix(
     matrix[3, :3] = 0
     matrix[3, 3] = 1
 
-    return matrix
+    return Matrix4x4(matrix)
 
 
 def transform_point3d(pt: Vector4, trans: Matrix4x4) -> Vector4:
-    return trans @ pt
+    return Vector4(trans @ pt)
 
 
 def transform_face(face: Face, trans: Matrix4x4) -> Face:
@@ -208,14 +188,33 @@ def object3d_to_object2d(obj: Object3D) -> Object2D:
 
 
 def make_vector3(x: float, y: float) -> Vector3:
-    return np.asfarray((x, y, 1)).reshape(3, 1)
+    vec = np.asfarray((x, y, 1)).reshape(3, 1)
+    return Vector3(vec)
 
 
-def normalize_vector3(pt: Vector3, win: Window) -> Vector3:
+def validate_vector3(vec: Vector3) -> None:
+    assert isinstance(vec, np.ndarray)
+    assert vec.shape == (3, 1)
+    assert vec.dtype == np.float64
+
+
+def normalize_vector3_naive(pt: Vector3, win: Window) -> Vector3:
     validate_vector3(pt)
 
-    raise NotImplementedError()
+    x = pt[0]
+    y = pt[1]
+
+    return make_vector3(
+        x=(x - win.lower_left.x) / win.width,
+        y=(y - win.lower_left.y) / win.height,
+    )
+
+
+def validate_normalized_point(pt: Vector3) -> None:
+    validate_vector3(pt)
+
+    assert ((0 <= pt) & (pt <= 1)).all()
 
 
 def normalize_polygon2(poly: Polygon, win: Window) -> Polygon:
-    return [normalize_vector3(pt, win) for pt in poly]
+    return [normalize_vector3_naive(pt, win) for pt in poly]
