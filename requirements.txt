@@ -3,5 +3,6 @@ flake8
 hypothesis
 mypy
 numpy
+pandas
 pygame
 pytest

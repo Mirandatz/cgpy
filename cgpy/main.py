@@ -313,15 +313,84 @@ def exemplo_3d() -> None:
         npoly = cu.normalize_polygon(poly, window)
         cd.draw_polygon(npoly, port3, cc.ColorId(1))
 
-    cd.show_device(device, palette, close_after_milliseconds=10000)
+    cd.show_device(device, palette, close_after_milliseconds=2000)
+
+
+def exemplo_teapot() -> None:
+    import pathlib
+
+    import pandas as pd
+
+    data_dir = pathlib.Path(__file__).parent / "data"
+
+    vertices_df = pd.read_csv(
+        data_dir / "teapot_vertices.csv",
+        index_col=0,
+    ).transpose()
+    vertices = [cu.make_vector4(*r) for r in vertices_df.to_numpy()]
+
+    faces_indices = pd.read_csv(
+        data_dir / "teapot_faces.csv",
+        index_col=0,
+    ).transpose()
+    faces_with_zero_base_indices = faces_indices - 1
+
+    teapot = [
+        cu.Face([vertices[i], vertices[j], vertices[k]])
+        for i, j, k in faces_with_zero_base_indices.to_numpy()
+    ]
+
+    for step in range(200):
+        observer = cu.create_observer_transformation_matrix(
+            normal=cu.make_vector4(0, 0, 1),
+            up=cu.make_vector4(0, 1, 0),
+            offset=cu.make_vector4(0, 0, 0),
+        )
+
+        obj_for_observer_1 = cu.transform_object(teapot, observer)
+        zpp = 40
+        zcp = -45
+
+        projected_teapot = cu.perspective_project_object(
+            obj_for_observer_1, zpp=zpp, zcp=zcp
+        )
+        teapot_2d = cu.object3d_to_object2d(projected_teapot)
+
+        device = cd.Device(num_columns=800, num_rows=600)
+
+        port = cd.Viewport(
+            lower_left=cd.DevicePoint(0, 0),
+            num_columns=device.num_columns,
+            num_rows=device.num_rows,
+            device=device,
+        )
+
+        window = cu.Window(-10, -10, 10, 10)
+
+        for poly in teapot_2d:
+            npoly = cu.normalize_polygon(poly, window)
+            cd.draw_polygon(npoly, port, cc.ColorId(1))
+
+        palette = [
+            cc.Color(0, 0, 0),
+            cc.Color(1, 0, 0),
+            cc.Color(0, 1, 0),
+            cc.Color(0, 0, 1),
+            cc.Color(0.4, 0.3, 1),
+            cc.Color(0.8, 0.8, 0.8),
+            cc.Color(1, 1, 1),
+        ]
+
+        cd.show_device(device, palette, close_after_milliseconds=50)
 
 
 def main() -> None:
-    exemplo1()
-    exemplo2()
-    exemplo3()
-    exemplo_floodfill()
-    exemplo_3d()
+    # exemplo1()
+    # exemplo2()
+    # exemplo3()
+    # exemplo_floodfill()
+    # exemplo_3d()
+    exemplo_teapot()
 
 
 if __name__ == "__main__":
