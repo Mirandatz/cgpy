@@ -1,4 +1,5 @@
 import dataclasses
+import typing
 
 import numpy as np
 
@@ -6,7 +7,7 @@ MIN_COLOR_INTENSITY = 0.0
 MAX_COLOR_INTENSITY = 1.0
 MAX_CHANNEL_VALUE = 255
 
-ColorId = np.int32
+ColorId = typing.NewType("ColorId", np.int32)
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -19,6 +20,9 @@ class Color:
         assert MIN_COLOR_INTENSITY <= self.red <= MAX_COLOR_INTENSITY
         assert MIN_COLOR_INTENSITY <= self.green <= MAX_COLOR_INTENSITY
         assert MIN_COLOR_INTENSITY <= self.blue <= MAX_COLOR_INTENSITY
+
+
+Palette = typing.NewType("Palette", list[Color])
 
 
 def extract_red_channel(c: Color) -> np.uint8:
