@@ -1,6 +1,7 @@
 import dataclasses
 import itertools
 import pathlib
+import typing
 
 import numpy as np
 import numpy.typing as npt
@@ -330,7 +331,7 @@ def device_to_png(device: Device, palette: list[cc.Color], path: pathlib.Path) -
 
 def show_device(
     device: Device,
-    palette: list[cc.Color],
+    palette: cc.Palette,
     close_after_milliseconds: int = 2000,
 ) -> None:
     assert close_after_milliseconds > 0
@@ -341,9 +342,35 @@ def show_device(
     )
 
     surface = _device_to_surface(device, palette)
-
     screen.blit(surface, (0, 0))
     pygame.display.update()
     clock = pygame.time.Clock()
     for _ in range(close_after_milliseconds):
         clock.tick(1000)
+
+
+def animate_devices(
+    devices: typing.Iterable[Device],
+    palettes: typing.Iterable[cc.Palette],
+    fps: int,
+) -> None:
+
+    screen = None
+
+    clock = pygame.time.Clock()
+    for device, palette in zip(
+        itertools.cycle(devices),
+        itertools.cycle(palettes),
+    ):
+        if screen is None:
+            screen = pygame.display.set_mode(
+                (device.num_columns, device.num_rows),
+                pygame.NOFRAME,
+            )
+        else:
+            assert screen.get_size() == (device.num_columns, device.num_rows)
+
+        sur = _device_to_surface(device, palette)
+        screen.blit(sur, (0, 0))
+        pygame.display.update()
+        clock.tick(fps)

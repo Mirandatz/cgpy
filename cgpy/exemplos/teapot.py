@@ -1,15 +1,16 @@
 import itertools
 import multiprocessing as mp
 import pathlib
+import pickle
 
 import pandas as pd
-import pygame
 
 import cgpy.colors as cc
 import cgpy.devices as cd
 import cgpy.universes as cu
 
 DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
+DEVICE_COUNT = 360
 
 
 def load_teapot() -> cu.Object3D:
@@ -29,10 +30,8 @@ def load_teapot() -> cu.Object3D:
     return teapot
 
 
-def get_device(teapot: cu.Object3D, timestep: int) -> cd.Device:
-    print(f"start processing {timestep=}")
-
-    rotation_matrix = cu.make_y_rotation_3d(timestep * 5)
+def generate_device(teapot: cu.Object3D, degrees: float) -> cd.Device:
+    rotation_matrix = cu.make_y_rotation_3d(degrees)
     rotated_teapot = cu.transform_object(teapot, rotation_matrix)
 
     observer = cu.create_observer_transformation_matrix(
@@ -65,43 +64,43 @@ def get_device(teapot: cu.Object3D, timestep: int) -> cd.Device:
         npoly = cu.normalize_polygon(poly, window)
         cd.draw_polygon(npoly, port, cc.ColorId(1))
 
-    print(f"finished processing {timestep=}")
+    print(".", end="")
 
     return device
 
 
-def draw_teapot() -> None:
-    teapot = load_teapot()
+def load_or_generate_devices() -> list[cd.Device]:
+    cache = pathlib.Path("/dev/shm/cgpy/teapots.pickle")
 
-    palette = [
-        cc.Color(0, 0, 0),
-        cc.Color(1, 0, 0),
-        cc.Color(0, 1, 0),
-        cc.Color(0, 0, 1),
-        cc.Color(0.4, 0.3, 1),
-        cc.Color(0.8, 0.8, 0.8),
-        cc.Color(1, 1, 1),
-    ]
+    try:
+        devices: list[cd.Device] = pickle.loads(cache.read_bytes())
+        assert isinstance(devices, list)
+        assert all(isinstance(d, cd.Device) for d in devices)
 
-    with mp.Pool() as pool:
-        teapots = itertools.repeat(teapot)
-        timesteps = range(100)
-        args = zip(teapots, timesteps)
-        devices = pool.starmap(get_device, args)
+    except Exception:
+        teapot = load_teapot()
 
-    surface_arrays = [cd._device_to_surface_array(dev, palette) for dev in devices]
+        with mp.Pool() as pool:
+            teapots = itertools.repeat(teapot)
+            timesteps = range(DEVICE_COUNT)
+            args = zip(teapots, timesteps)
+            devices = pool.starmap(generate_device, args)
 
-    screen = pygame.display.set_mode((800, 600), pygame.NOFRAME)
-    clock = pygame.time.Clock()
+            cache.parent.mkdir(parents=True, exist_ok=True)
+            cache.write_bytes(pickle.dumps(devices, pickle.HIGHEST_PROTOCOL))
 
-    frames = itertools.chain(surface_arrays, reversed(surface_arrays))
-    for sa in itertools.cycle(frames):
-        surface = pygame.surfarray.make_surface(sa)
-        screen.blit(surface, (0, 0))
-        pygame.display.update()
+    return devices
 
-        clock.tick(60)
+
+def animate_teapot() -> None:
+    devices = load_or_generate_devices()
+    palette = cc.Palette([cc.Color(0, 0, 0), cc.Color(1, 0, 0)])
+    cd.animate_devices(
+        devices,
+        [palette],
+        fps=60,
+    )
 
 
 if __name__ == "__main__":
-    draw_teapot()
+    animate_teapot()
