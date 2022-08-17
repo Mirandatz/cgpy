@@ -1,7 +1,6 @@
 import itertools
 import multiprocessing as mp
 import pathlib
-import pickle
 
 import pandas as pd
 
@@ -10,7 +9,6 @@ import cgpy.devices as cd
 import cgpy.universes as cu
 
 DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
-DEVICE_COUNT = 360
 
 
 def load_teapot() -> cu.Object3D:
@@ -69,31 +67,16 @@ def generate_device(teapot: cu.Object3D, degrees: float) -> cd.Device:
     return device
 
 
-def load_or_generate_devices() -> list[cd.Device]:
-    cache = pathlib.Path("/dev/shm/cgpy/teapots.pickle")
-
-    try:
-        devices: list[cd.Device] = pickle.loads(cache.read_bytes())
-        assert isinstance(devices, list)
-        assert all(isinstance(d, cd.Device) for d in devices)
-
-    except Exception:
-        teapot = load_teapot()
-
-        with mp.Pool() as pool:
-            teapots = itertools.repeat(teapot)
-            timesteps = range(DEVICE_COUNT)
-            args = zip(teapots, timesteps)
-            devices = pool.starmap(generate_device, args)
-
-            cache.parent.mkdir(parents=True, exist_ok=True)
-            cache.write_bytes(pickle.dumps(devices, pickle.HIGHEST_PROTOCOL))
-
-    return devices
-
-
 def animate_teapot() -> None:
-    devices = load_or_generate_devices()
+    teapot = load_teapot()
+    number_of_devices = 360
+
+    with mp.Pool() as pool:
+        teapots = itertools.repeat(teapot)
+        timesteps = range(number_of_devices)
+        args = zip(teapots, timesteps)
+        devices = pool.starmap(generate_device, args)
+
     palette = cc.Palette([cc.Color(0, 0, 0), cc.Color(1, 0, 0)])
     cd.animate_devices(
         devices,
