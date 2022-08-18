@@ -1,9 +1,10 @@
 # Requisitos
 
-Python 3.10.6 e bibliotecas descritas no "requirements.txt".
+Python (testado na 3.10.6, mas provavelmente roda em versões antigas) e bibliotecas descritas no "requirements.txt".
 
 Sugestão de instação:
 
+0) Instale os pacotes necessários para compilar Python com o seguinte comando: `sudo apt-get update; sudo apt-get install make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev`
 1) Instale [pyenv](https://github.com/pyenv/pyenv) para gerenciar versões do Python.
 2) Após instalar  `pyenv`, instale Python 3.10.6 executando o seguinte comando no terminal: `CONFIGURE_OPTS="--enable-optimizations --with-lto" pyenv install 3.10.6` 
 3) Após instalar o Python 3.10.6, navegue até o diretório raiz do repositório e defina o "Python padrão para este repositório" com o comando: `pyenv local 3.10.6`
