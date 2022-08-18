@@ -2,7 +2,7 @@
 
 Python (testado na 3.10.6, mas provavelmente roda em versões antigas) e bibliotecas descritas no "requirements.txt".
 
-Sugestão de instação:
+Sugestão de instação. Se você já tem uma versão recente do Python instalado, pule para o passo 4:
 
 0) Instale os pacotes necessários para compilar Python com o seguinte comando: `sudo apt-get update; sudo apt-get install make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev`
 1) Instale [pyenv](https://github.com/pyenv/pyenv) para gerenciar versões do Python.
