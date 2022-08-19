@@ -2,6 +2,11 @@
 
 Python (testado na 3.10.6, mas provavelmente roda em versões antigas) e bibliotecas descritas no "requirements.txt".
 
+## Alternativa - Máquina virtual
+Para quem utiliza máquinas virtuais, [essa](https://drive.google.com/file/d/1z_f8lX3bTV4COiL8d3qzuMJanPFPBCbf/view?usp=sharing) já está configurada com todas dependências.
+
+## Alternativa - Instalação manual
+
 Sugestão de instação. Se você já tem uma versão recente do Python instalado, pule para o passo 4:
 
 0) Instale os pacotes necessários para compilar Python com o seguinte comando: `sudo apt-get update; sudo apt-get install make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev`
