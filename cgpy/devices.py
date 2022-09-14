@@ -432,3 +432,25 @@ def numba_draw_line(
             if error < 0:
                 y += ystep
                 error += dx
+
+
+@numba.njit(fastmast=True)  # type: ignore
+def numba_normalized_points_to_device_points(
+    poly: npt.NDArray[np.float64],
+    x_min: int,
+    x_max: int,
+    y_min: int,
+    y_max: int,
+) -> npt.NDArray[np.int64]:
+    n_points, n_dimensions = poly.shape
+
+    # ensure working in 2d
+    assert n_dimensions == 2
+
+    delta_x = x_max - x_min
+    delta_y = y_max - y_min
+
+    result = np.empty_like(poly, dtype=np.int64)
+    result[:, 0] = x_min + (poly[:, 0] * delta_x)
+    result[:, 1] = y_min + (poly[:, 1] * delta_y)
+    return result
