@@ -3,12 +3,15 @@ import itertools
 import pathlib
 import typing
 
+import numba
 import numpy as np
 import numpy.typing as npt
 import pygame
 
 import cgpy.colors as cc
 import cgpy.universes as cu
+
+DeviceBuffer = npt.NDArray[cc.ColorId]
 
 
 @dataclasses.dataclass
@@ -374,3 +377,58 @@ def animate_devices(
         screen.blit(sur, (0, 0))
         pygame.display.update()
         clock.tick(fps)
+
+
+@numba.njit(fastmath=True)  # type: ignore
+def numba_draw_line(
+    x0: int,
+    y0: int,
+    x1: int,
+    y1: int,
+    color_id: cc.ColorId,
+    buffer: DeviceBuffer,
+) -> None:
+    # based on:
+    # http://www.roguebasin.com/index.php/Bresenham%27s_Line_Algorithm#Python
+
+    dx = x1 - x0
+    dy = y1 - y0
+
+    # Determine how steep the line is
+    is_steep = abs(dy) > abs(dx)
+
+    # Rotate line
+    if is_steep:
+        x0, y0 = y0, x0
+        x1, y1 = y1, x1
+
+    if x0 > x1:
+        x0, x1 = x1, x0
+        y0, y1 = y1, y0
+
+    # Recalculate differentials
+    dx = x1 - x0
+    dy = y1 - y0
+
+    # Calculate error
+    error = int(dx / 2.0)
+    ystep = 1 if y0 < y1 else -1
+
+    # Iterate over bounding box generating points between start and end
+    y = y0
+
+    # manually hoist 'if is_steep'
+    if is_steep:
+        for x in range(x0, x1 + 1):
+            buffer[x, y] = color_id
+            error -= abs(dy)
+            if error < 0:
+                y += ystep
+                error += dx
+    else:
+        for x in range(x0, x1 + 1):
+            buffer[y, x] = color_id
+            error -= abs(dy)
+            if error < 0:
+                y += ystep
+                error += dx
