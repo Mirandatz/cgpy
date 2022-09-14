@@ -20,6 +20,22 @@ class Color:
         assert MIN_COLOR_INTENSITY <= self.green <= MAX_COLOR_INTENSITY
         assert MIN_COLOR_INTENSITY <= self.blue <= MAX_COLOR_INTENSITY
 
+    @staticmethod
+    def from_ints(red: int, green: int, blue: int) -> "Color":
+        assert isinstance(red, int)
+        assert isinstance(green, int)
+        assert isinstance(blue, int)
+
+        assert 0 <= red <= MAX_CHANNEL_VALUE
+        assert 0 <= green <= MAX_CHANNEL_VALUE
+        assert 0 <= blue <= MAX_CHANNEL_VALUE
+
+        return Color(
+            red=red / MAX_CHANNEL_VALUE,
+            green=green / MAX_CHANNEL_VALUE,
+            blue=blue / MAX_CHANNEL_VALUE,
+        )
+
 
 Palette = list[Color]
 
