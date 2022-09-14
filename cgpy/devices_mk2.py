@@ -11,7 +11,7 @@ DeviceBuffer = npt.NDArray[cc.ColorId]
 
 
 @numba.njit(fastmath=True)  # type: ignore
-def numba_draw_line(
+def draw_line(
     x0: int,
     y0: int,
     x1: int,
@@ -54,7 +54,6 @@ def numba_draw_line(
     # Iterate over bounding box generating points between start and end
     y = y0
 
-    # manually hoist 'if is_steep'
     for x in range(x0, x1 + 1):
         if is_steep:
             buffer[x, y] = color_id
@@ -68,7 +67,7 @@ def numba_draw_line(
 
 
 @numba.njit(fastmath=True)  # type: ignore
-def numba_normalized_points_to_device_points(
+def normalized_points_to_device_points(
     poly: NormalizedPolygon,
     num_rows: int,
     num_columns: int,
@@ -81,12 +80,12 @@ def numba_normalized_points_to_device_points(
     # ensure working in 2d + homogeneous coord
     assert n_dimensions == 3
 
-    # ensure no homoegenous coord is zero
-    assert np.all(np.nonzero(poly[:2]))
+    # ensure no homoegenous coord is valid
+    assert np.all(poly[:, 2] != 0)
 
     # remove homogenous coord
-    poly_x = poly[:, 0] / poly[:2]
-    poly_y = poly[:, 1] / poly[:2]
+    poly_x = poly[:, 0] / poly[:, 2]
+    poly_y = poly[:, 1] / poly[:, 2]
 
     result = np.empty_like(poly, dtype=np.int32)
     result[:, 0] = poly_x * num_columns
@@ -95,24 +94,24 @@ def numba_normalized_points_to_device_points(
 
 
 @numba.njit(fastmath=True)  # type: ignore
-def numba_draw_polygon(
+def draw_polygon(
     poly: NormalizedPolygon,
     port: DeviceBuffer,
     color_id: cc.ColorId,
 ) -> None:
     n_points, n_dimensions = poly.shape
     assert n_points >= 2  # working with at least a line segment
-    assert n_dimensions == 2  # working in 2d
+    assert n_dimensions == 3  # working in 2d + homogeneous
 
     num_rows, num_columns = port.shape
-    device_coords = numba_normalized_points_to_device_points(
+    device_coords = normalized_points_to_device_points(
         poly,
         num_rows=num_rows,
         num_columns=num_columns,
     )
 
-    for i in range(n_points - 1):
-        numba_draw_line(
+    for i in numba.prange(n_points - 1):
+        draw_line(
             x0=device_coords[i][0],
             y0=device_coords[i][1],
             x1=device_coords[i + 1][0],
