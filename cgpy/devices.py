@@ -434,7 +434,7 @@ def numba_draw_line(
                 error += dx
 
 
-@numba.njit(fastmast=True)  # type: ignore
+@numba.njit(fastmath=True)  # type: ignore
 def numba_normalized_points_to_device_points(
     poly: npt.NDArray[np.float64],
     x_min: int,
@@ -454,3 +454,36 @@ def numba_normalized_points_to_device_points(
     result[:, 0] = x_min + (poly[:, 0] * delta_x)
     result[:, 1] = y_min + (poly[:, 1] * delta_y)
     return result
+
+
+def numba_draw_polygon(
+    poly: list[cu.NormalizedPoint],
+    port: Viewport,
+    color_id: cc.ColorId,
+) -> None:
+
+    # TODO: not discard homogeneous coord
+    polygon_ndarray = np.asarray(poly).squeeze()[:, :2]  # get only x and y
+
+    buffer = port.buffer_view
+
+    # TODO: check if -1 necessary
+    device_coords = numba_normalized_points_to_device_points(
+        polygon_ndarray,
+        x_min=port.inclusive_left,
+        x_max=port.exclusive_right - 1,
+        y_min=port.inclusive_bottom,
+        y_max=port.exclusive_top - 1,
+    )
+
+    n_points = device_coords.shape[0]
+
+    for i in range(n_points - 1):
+        numba_draw_line(
+            x0=device_coords[i][0],
+            y0=device_coords[i][1],
+            x1=device_coords[i + 1][0],
+            y1=device_coords[i + 1, 1],
+            color_id=color_id,
+            buffer=buffer,
+        )
