@@ -1,7 +1,10 @@
-import trimesh
+# Author: Matheus Ramos de Carvalho
+# GitHub: https://github.com/OakBranches
+
 import csv
 import sys
-    
+
+import trimesh
 
 # Os arquivos stl podem ser encontrados em sites de modelos 3d
 # por exemplo: https://thingiverse.com, https://thangs.com/
