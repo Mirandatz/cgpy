@@ -15,7 +15,7 @@ DevicePolygon = npt.NDArray[np.int32]
 DeviceBuffer = npt.NDArray[cc.ColorId]
 
 
-@numba.njit(fastmath=True)  # type: ignore
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def validate_device_polygon(polygon: DevicePolygon) -> None:
     n_line_segments, points_per_line_segment, coords_per_point = polygon.shape
     assert points_per_line_segment == 2
@@ -27,7 +27,7 @@ def validate_device_polygon(polygon: DevicePolygon) -> None:
     assert np.all(y_values >= 0)
 
 
-@numba.njit(fastmath=True)  # type: ignore
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def validate_device_buffer(buffer: DeviceBuffer) -> None:
     n_rows, n_cols = buffer.shape
     assert n_rows >= 1
@@ -35,7 +35,7 @@ def validate_device_buffer(buffer: DeviceBuffer) -> None:
     assert buffer.dtype == cc.ColorId
 
 
-@numba.njit(fastmath=True)  # type: ignore
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def validate_device_polygon_and_buffer(
     polygon: DevicePolygon,
     buffer: DeviceBuffer,
@@ -51,7 +51,7 @@ def validate_device_polygon_and_buffer(
     assert np.all(y_values < device_rows)
 
 
-@numba.njit(fastmath=True)  # type: ignore
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def draw_line(
     x0: int,
     y0: int,
@@ -107,7 +107,7 @@ def draw_line(
             error += dx
 
 
-@numba.njit(fastmath=True)  # type: ignore
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def normalized_object2d_to_device_polygon(
     obj: cu_mk2.NormalizedObject2D,
     num_rows: int,
@@ -125,7 +125,7 @@ def normalized_object2d_to_device_polygon(
     return result
 
 
-@numba.njit(fastmath=True)  # type: ignore
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def draw_object2d(
     poly: cu_mk2.NormalizedObject2D,
     port: DeviceBuffer,
