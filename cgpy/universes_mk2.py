@@ -24,6 +24,9 @@ NormalizedObject2D = npt.NDArray[np.float32]
 Object3D = npt.NDArray[np.float32]
 
 
+Matrix3x3 = npt.NDArray[np.float32]
+
+
 @numba.njit(fastmath=True)  # type: ignore
 def validate_object2d(obj: Object2D) -> None:
     line_segments, points_per_line_segment, coords_per_point = obj.shape
@@ -48,6 +51,56 @@ def validate_normalized_object2d(obj: NormalizedObject2D) -> None:
     # type check does not work with njit
     # assert obj.dtype == np.float32
     assert np.all(obj >= 0) and np.all(obj <= 1)
+
+
+@numba.njit(fastmath=True)  # type: ignore
+def validate_object3d(obj: Object3D) -> None:
+    line_segments, points_per_line_segment, coords_per_point = obj.shape
+    assert points_per_line_segment == 2
+    assert coords_per_point == 4
+
+    # type check does not work with njit
+    # assert obj.dtype == np.dtype(np.float32)
+
+    assert np.all(np.isfinite(obj))
+
+    w_values = obj[:, :, 3]
+    assert np.all(w_values != 0)
+
+
+@numba.njit(fastmath=True)  # type: ignore
+def validate_matrix3x3(mat: Matrix3x3) -> None:
+    assert mat.shape == (3, 3)
+    assert np.all(np.isfinite(mat))
+
+
+@numba.njit(paralle=True, fastmath=True)  # type: ignore
+def transform_object2d(obj: Object2D, trans: Matrix3x3) -> Object2D:
+    validate_object2d(obj)
+    validate_matrix3x3(trans)
+
+    num_line_segments = obj.shape[0]
+
+    result = np.empty_like(obj)
+
+    for i in numba.prange(num_line_segments):  # type: ignore
+        result[i, 0] = trans @ obj[i, 0]
+        result[i, 1] = trans @ obj[i, 1]
+
+    return result
+
+
+@numba.njit(parallel=True, fastmath=True)  # type: ignore
+def perspective_project(obj: Object3D, zpp: float, zcp: float) -> Object2D:
+    validate_object3d(obj)
+
+    projected = np.empty_like(obj)
+
+    n_faces = obj.shape[0]
+    for i in numba.prange(n_faces):  # type: ignore
+        raise NotImplementedError()
+
+    return projected
 
 
 @numba.njit(fastmath=True)  # type: ignore
