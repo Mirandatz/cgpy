@@ -143,10 +143,9 @@ def normalize_object2d_naive(
 
 @numba.njit(fastmath=True)  # type: ignore
 def old_polygon_to_line_segments(polygon: cu.Polygon) -> Object2D:
-    assert len(polygon) >= 2
-
     num_points = len(polygon)
     num_line_segments = num_points - 1
+
     result = np.empty(shape=(num_line_segments, 2, 3), dtype=np.float32)
 
     for i in range(num_line_segments):
@@ -158,4 +157,23 @@ def old_polygon_to_line_segments(polygon: cu.Polygon) -> Object2D:
 
 def old_object2d_to_new_object2d(obj: cu.Object2D) -> Object2D:
     line_segments = [old_polygon_to_line_segments(NumbaList(p)) for p in obj]
+    return np.concatenate(line_segments, axis=0, dtype=np.float32)
+
+
+@numba.njit(fastmath=True)  # type: ignore
+def old_face_to_line_segments(face: cu.Face) -> Object3D:
+    num_points = len(face)
+    num_line_segments = num_points - 1
+
+    result = np.empty(shape=(num_line_segments, 2, 4), dtype=np.float32)
+
+    for i in range(num_line_segments):
+        result[i, 0, :] = face[i].flatten()
+        result[i, 1, :] = face[i].flatten()
+
+    return result
+
+
+def old_object3d_to_new_object3d(obj: cu.Object3D) -> Object3D:
+    line_segments = [old_face_to_line_segments(NumbaList(f)) for f in obj]
     return np.concatenate(line_segments, axis=0, dtype=np.float32)
