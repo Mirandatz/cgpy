@@ -90,15 +90,31 @@ def transform_object2d(obj: Object2D, trans: Matrix3x3) -> Object2D:
     return result
 
 
+@numba.njit(fastmath=True)  # type: ignore
+def perspective_project_point(
+    point: npt.NDArray[np.float32],
+    zpp: float,
+    zcp: float,
+) -> npt.NDArray[np.float32]:
+    projected = np.empty(shape=(3,), dtype=np.float32)
+    projected[0] = point[0] * (zpp - zcp) / (point[2] - zcp)
+    projected[1] = point[1] * (zpp - zcp) / (point[2] - zcp)
+    projected[2] = 1
+
+    return projected
+
+
 @numba.njit(parallel=True, fastmath=True)  # type: ignore
 def perspective_project(obj: Object3D, zpp: float, zcp: float) -> Object2D:
     validate_object3d(obj)
 
-    projected = np.empty_like(obj)
+    n_line_segments = obj.shape[0]
+    projected = np.empty(shape=(n_line_segments, 2, 3), dtype=np.float32)
 
     n_faces = obj.shape[0]
     for i in numba.prange(n_faces):  # type: ignore
-        raise NotImplementedError()
+        projected[i, 0, :] = perspective_project_point(obj[i, 0], zpp, zcp)
+        projected[i, 1, :] = perspective_project_point(obj[i, 1], zpp, zcp)
 
     return projected
 
@@ -169,7 +185,7 @@ def old_face_to_line_segments(face: cu.Face) -> Object3D:
 
     for i in range(num_line_segments):
         result[i, 0, :] = face[i].flatten()
-        result[i, 1, :] = face[i].flatten()
+        result[i, 1, :] = face[i + 1].flatten()
 
     return result
 
