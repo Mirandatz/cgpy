@@ -25,6 +25,7 @@ Object3D = npt.NDArray[np.float32]
 
 
 Matrix3x3 = npt.NDArray[np.float32]
+Matrix4x4 = npt.NDArray[np.float32]
 
 
 @numba.njit(fastmath=True)  # type: ignore
@@ -74,10 +75,32 @@ def validate_matrix3x3(mat: Matrix3x3) -> None:
     assert np.all(np.isfinite(mat))
 
 
-@numba.njit(paralle=True, fastmath=True)  # type: ignore
+@numba.njit(fastmath=True)  # type: ignore
+def validate_matrix4x4(mat: Matrix3x3) -> None:
+    assert mat.shape == (4, 4)
+    assert np.all(np.isfinite(mat))
+
+
+@numba.njit(parallel=True, fastmath=True)  # type: ignore
 def transform_object2d(obj: Object2D, trans: Matrix3x3) -> Object2D:
     validate_object2d(obj)
     validate_matrix3x3(trans)
+
+    num_line_segments = obj.shape[0]
+
+    result = np.empty_like(obj)
+
+    for i in numba.prange(num_line_segments):  # type: ignore
+        result[i, 0] = trans @ obj[i, 0]
+        result[i, 1] = trans @ obj[i, 1]
+
+    return result
+
+
+@numba.njit(parallel=True, fastmath=True)  # type: ignore
+def transform_object3d(obj: Object3D, trans: Matrix4x4) -> Object2D:
+    validate_object3d(obj)
+    validate_matrix4x4(trans)
 
     num_line_segments = obj.shape[0]
 
@@ -193,3 +216,16 @@ def old_face_to_line_segments(face: cu.Face) -> Object3D:
 def old_object3d_to_new_object3d(obj: cu.Object3D) -> Object3D:
     line_segments = [old_face_to_line_segments(NumbaList(f)) for f in obj]
     return np.concatenate(line_segments, axis=0, dtype=np.float32)
+
+
+@numba.njit(fastmath=True)  # type: ignore
+def make_x_rotation_3d(degrees: float) -> Matrix4x4:
+    radians = degrees * np.pi / 180
+    matrix: Matrix4x4 = np.eye(4, 4)  # type: ignore
+
+    matrix[1, 1] = np.cos(radians)
+    matrix[1, 2] = -np.sin(radians)
+    matrix[2, 1] = np.sin(radians)
+    matrix[2, 2] = np.cos(radians)
+
+    return matrix
