@@ -3,11 +3,52 @@ import numpy as np
 import numpy.typing as npt
 
 import cgpy.colors as cc
+import cgpy.universes_mk2 as cu_mk2
 
-Polygon = npt.NDArray[np.float32]
-NormalizedPolygon = npt.NDArray[np.float32]
+# Shape = (a, b, c), dtype = np.int32
+# a = number of line of  segments
+# b = 2 = number of points in line segment = `start` and `end`
+# c = 2 = number of coordinates in point = `x` and `y`
 DevicePolygon = npt.NDArray[np.int32]
+
+# Shape = (num_rows, num_columns), dtype = cc.ColorID
 DeviceBuffer = npt.NDArray[cc.ColorId]
+
+
+@numba.njit(fastmath=True)  # type: ignore
+def validate_device_polygon(polygon: DevicePolygon) -> None:
+    n_line_segments, points_per_line_segment, coords_per_point = polygon.shape
+    assert points_per_line_segment == 2
+    assert coords_per_point == 2
+    assert polygon.dtype == np.int32
+    x_values = polygon[:, :, 0]
+    y_values = polygon[:, :, 1]
+    assert np.all(x_values >= 0)
+    assert np.all(y_values >= 0)
+
+
+@numba.njit(fastmath=True)  # type: ignore
+def validate_device_buffer(buffer: DeviceBuffer) -> None:
+    n_rows, n_cols = buffer.shape
+    assert n_rows >= 1
+    assert n_cols >= 1
+    assert buffer.dtype == cc.ColorId
+
+
+@numba.njit(fastmath=True)  # type: ignore
+def validate_device_polygon_and_buffer(
+    polygon: DevicePolygon,
+    buffer: DeviceBuffer,
+) -> None:
+    validate_device_polygon(polygon)
+    validate_device_buffer(buffer)
+
+    x_values = polygon[:, :, 0]
+    y_values = polygon[:, :, 1]
+
+    device_rows, device_columns = buffer.shape
+    assert np.all(x_values < device_columns)
+    assert np.all(y_values < device_rows)
 
 
 @numba.njit(fastmath=True)  # type: ignore
@@ -67,55 +108,48 @@ def draw_line(
 
 
 @numba.njit(fastmath=True)  # type: ignore
-def normalized_points_to_device_points(
-    poly: NormalizedPolygon,
+def normalized_object2d_to_device_polygon(
+    obj: cu_mk2.NormalizedObject2D,
     num_rows: int,
     num_columns: int,
-) -> npt.NDArray[np.int32]:
+) -> DevicePolygon:
+    cu_mk2.validate_normalized_object2d(obj)
+
     assert num_rows >= 1
     assert num_columns >= 1
 
-    n_points, n_dimensions = poly.shape
-
-    # ensure working in 2d + homogeneous coord
-    assert n_dimensions == 3
-
-    # ensure no homoegenous coord is valid
-    assert np.all(poly[:, 2] != 0)
-
-    # remove homogenous coord
-    poly_x = poly[:, 0] / poly[:, 2]
-    poly_y = poly[:, 1] / poly[:, 2]
-
-    result = np.empty_like(poly, dtype=np.int32)
-    result[:, 0] = poly_x * num_columns
-    result[:, 1] = poly_y * num_rows
+    n_line_segments = obj.shape[0]
+    result = np.empty(shape=(n_line_segments, 2, 2), dtype=np.int32)
+    result[:, :, 0] = obj[:, :, 0] * num_columns
+    result[:, :, 1] = obj[:, :, 1] * num_rows
     return result
 
 
 @numba.njit(fastmath=True)  # type: ignore
 def draw_polygon(
-    poly: NormalizedPolygon,
+    poly: cu_mk2.NormalizedObject2D,
     port: DeviceBuffer,
     color_id: cc.ColorId,
 ) -> None:
-    n_points, n_dimensions = poly.shape
-    assert n_points >= 2  # working with at least a line segment
-    assert n_dimensions == 3  # working in 2d + homogeneous
+    # TODO: add some validation
 
     num_rows, num_columns = port.shape
-    device_coords = normalized_points_to_device_points(
+    device_coords = normalized_object2d_to_device_polygon(
         poly,
         num_rows=num_rows,
         num_columns=num_columns,
     )
 
-    for i in numba.prange(n_points - 1):
+    n_segments = device_coords.shape[0]
+
+    for line_segment in range(n_segments):
+        start = device_coords[line_segment, 0, :]
+        end = device_coords[line_segment, 1, :]
         draw_line(
-            x0=device_coords[i][0],
-            y0=device_coords[i][1],
-            x1=device_coords[i + 1][0],
-            y1=device_coords[i + 1, 1],
+            x0=start[0],
+            y0=start[1],
+            x1=end[0],
+            y1=end[1],
             color_id=color_id,
             buffer=port,
         )
