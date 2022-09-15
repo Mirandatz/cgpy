@@ -28,7 +28,7 @@ Matrix3x3 = npt.NDArray[np.float32]
 Matrix4x4 = npt.NDArray[np.float32]
 
 
-@numba.njit(fastmath=True)  # type: ignore
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def validate_object2d(obj: Object2D) -> None:
     line_segments, points_per_line_segment, coords_per_point = obj.shape
     assert points_per_line_segment == 2
@@ -43,7 +43,7 @@ def validate_object2d(obj: Object2D) -> None:
     assert np.all(w_values != 0)
 
 
-@numba.njit(fastmath=True)  # type: ignore
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def validate_normalized_object2d(obj: NormalizedObject2D) -> None:
     line_segments, points_per_line_segment, coords_per_point = obj.shape
     assert points_per_line_segment == 2
@@ -54,7 +54,7 @@ def validate_normalized_object2d(obj: NormalizedObject2D) -> None:
     assert np.all(obj >= 0) and np.all(obj <= 1)
 
 
-@numba.njit(fastmath=True)  # type: ignore
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def validate_object3d(obj: Object3D) -> None:
     line_segments, points_per_line_segment, coords_per_point = obj.shape
     assert points_per_line_segment == 2
@@ -69,19 +69,19 @@ def validate_object3d(obj: Object3D) -> None:
     assert np.all(w_values != 0)
 
 
-@numba.njit(fastmath=True)  # type: ignore
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def validate_matrix3x3(mat: Matrix3x3) -> None:
     assert mat.shape == (3, 3)
     assert np.all(np.isfinite(mat))
 
 
-@numba.njit(fastmath=True)  # type: ignore
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def validate_matrix4x4(mat: Matrix3x3) -> None:
     assert mat.shape == (4, 4)
     assert np.all(np.isfinite(mat))
 
 
-@numba.njit(parallel=True, fastmath=True)  # type: ignore
+@numba.njit(parallel=True, fastmath=True, cache=True)  # type: ignore
 def transform_object2d(obj: Object2D, trans: Matrix3x3) -> Object2D:
     validate_object2d(obj)
     validate_matrix3x3(trans)
@@ -97,7 +97,7 @@ def transform_object2d(obj: Object2D, trans: Matrix3x3) -> Object2D:
     return result
 
 
-@numba.njit(parallel=True, fastmath=True)  # type: ignore
+@numba.njit(parallel=True, fastmath=True, cache=True)  # type: ignore
 def transform_object3d(obj: Object3D, trans: Matrix4x4) -> Object2D:
     validate_object3d(obj)
     validate_matrix4x4(trans)
@@ -113,7 +113,7 @@ def transform_object3d(obj: Object3D, trans: Matrix4x4) -> Object2D:
     return result
 
 
-@numba.njit(fastmath=True)  # type: ignore
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def perspective_project_point(
     point: npt.NDArray[np.float32],
     zpp: float,
@@ -127,7 +127,7 @@ def perspective_project_point(
     return projected
 
 
-@numba.njit(parallel=True, fastmath=True)  # type: ignore
+@numba.njit(parallel=True, fastmath=True, cache=True)  # type: ignore
 def perspective_project(obj: Object3D, zpp: float, zcp: float) -> Object2D:
     validate_object3d(obj)
 
@@ -142,7 +142,7 @@ def perspective_project(obj: Object3D, zpp: float, zcp: float) -> Object2D:
     return projected
 
 
-@numba.njit(fastmath=True)  # type: ignore
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def normalize_object2d_naive(
     obj: Object2D,
     x_min: float,
@@ -180,7 +180,7 @@ def normalize_object2d_naive(
     return result
 
 
-@numba.njit(fastmath=True)  # type: ignore
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def old_polygon_to_line_segments(polygon: cu.Polygon) -> Object2D:
     num_points = len(polygon)
     num_line_segments = num_points - 1
@@ -199,7 +199,7 @@ def old_object2d_to_new_object2d(obj: cu.Object2D) -> Object2D:
     return np.concatenate(line_segments, axis=0, dtype=np.float32)
 
 
-@numba.njit(fastmath=True)  # type: ignore
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def old_face_to_line_segments(face: cu.Face) -> Object3D:
     num_points = len(face)
     num_line_segments = num_points - 1
@@ -218,7 +218,7 @@ def old_object3d_to_new_object3d(obj: cu.Object3D) -> Object3D:
     return np.concatenate(line_segments, axis=0, dtype=np.float32)
 
 
-@numba.njit(fastmath=True)  # type: ignore
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def make_x_rotation_3d(degrees: float) -> Matrix4x4:
     radians = degrees * np.pi / 180
     matrix: Matrix4x4 = np.eye(4, 4)  # type: ignore
