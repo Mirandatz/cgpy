@@ -126,7 +126,7 @@ def normalized_object2d_to_device_polygon(
 
 
 @numba.njit(fastmath=True)  # type: ignore
-def draw_polygon(
+def draw_object2d(
     poly: cu_mk2.NormalizedObject2D,
     port: DeviceBuffer,
     color_id: cc.ColorId,
