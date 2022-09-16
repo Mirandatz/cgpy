@@ -1,6 +1,7 @@
 import pathlib
 import time
 
+import numba
 import numpy as np
 import pandas as pd
 
@@ -31,15 +32,19 @@ def load_teapot() -> cu.Object3D:
     return teapot
 
 
+# @numba.njit(fastmath=True, cache=True)  # type: ignore
 def generate_device(teapot: cu_mk2.Object3D, degrees: float) -> cd.Device:
     rotation_matrix = cu_mk2.make_x_rotation_3d(degrees)
-    observer = cu.create_observer_transformation_matrix(
-        normal=cu.make_vector4(0, 0, 1),
-        up=cu.make_vector4(0, 1, 0),
-        offset=cu.make_vector4(0, 0, 0),
+    normal = cu_mk2.make_vector4(0, 0, 1)
+    up = cu_mk2.make_vector4(0, 1, 0)
+    offset = cu_mk2.make_vector4(0, 0, 0)
+    observer = cu_mk2.create_observer_transformation_matrix(
+        normal=normal,
+        up=up,
+        offset=offset,
     )
 
-    trans = (observer @ rotation_matrix).astype(np.float32)
+    trans = observer @ rotation_matrix
     rotated_teapot = cu_mk2.transform_object3d(teapot, trans)
 
     zpp = 40
@@ -70,7 +75,7 @@ def generate_device(teapot: cu_mk2.Object3D, degrees: float) -> cd.Device:
         color_id=cc.ColorId(1),
     )
 
-    print(".", end="")
+    # print(".", end="")
 
     return device
 

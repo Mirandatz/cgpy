@@ -24,6 +24,7 @@ NormalizedObject2D = npt.NDArray[np.float32]
 Object3D = npt.NDArray[np.float32]
 
 
+Vector4 = npt.NDArray[np.float32]
 Matrix3x3 = npt.NDArray[np.float32]
 Matrix4x4 = npt.NDArray[np.float32]
 
@@ -70,9 +71,25 @@ def validate_object3d(obj: Object3D) -> None:
 
 
 @numba.njit(fastmath=True, cache=True)  # type: ignore
+def validate_vector4(vec: Matrix3x3) -> None:
+    assert vec.shape == (4,)
+    assert np.all(np.isfinite(vec))
+
+
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def validate_matrix3x3(mat: Matrix3x3) -> None:
     assert mat.shape == (3, 3)
     assert np.all(np.isfinite(mat))
+
+
+@numba.njit(fastmath=True, cache=True)  # type: ignore
+def make_vector4(x: float, y: float, z: float) -> Vector4:
+    vec = np.empty(shape=(4,), dtype=np.float32)
+    vec[0] = x
+    vec[1] = y
+    vec[2] = z
+    vec[3] = 1
+    return vec
 
 
 @numba.njit(fastmath=True, cache=True)  # type: ignore
@@ -221,11 +238,73 @@ def old_object3d_to_new_object3d(obj: cu.Object3D) -> Object3D:
 @numba.njit(fastmath=True, cache=True)  # type: ignore
 def make_x_rotation_3d(degrees: float) -> Matrix4x4:
     radians = degrees * np.pi / 180
-    matrix: Matrix4x4 = np.eye(4, 4)  # type: ignore
+    matrix: Matrix4x4 = np.eye(4, 4, dtype=np.float32)  # type: ignore
 
     matrix[1, 1] = np.cos(radians)
     matrix[1, 2] = -np.sin(radians)
     matrix[2, 1] = np.sin(radians)
     matrix[2, 2] = np.cos(radians)
+
+    return matrix
+
+
+@numba.njit(fastmath=True, cache=True)  # type: ignore
+def make_versor(vec: Vector4) -> Vector4:
+    """
+    Retorna um vetor com mesma direção que `vec`,
+    mas módulo=1 e coordenada homogenea=1.
+    """
+
+    direction = vec[:3]  # x, y, z
+    norm = np.linalg.norm(direction)
+
+    versor = np.empty(shape=(4,), dtype=np.float32)
+    versor[:3] = direction / norm
+    versor[3] = 1
+
+    return versor
+
+
+@numba.njit(fastmath=True, cache=True)  # type: ignore
+def create_observer_transformation_matrix(
+    normal: Vector4,
+    up: Vector4,
+    offset: Vector4,
+) -> Matrix4x4:
+    """
+    Computa a matriz de mudança de base (4x4) para um observador
+    descrito por `normal`, `up`, e `offset`.
+    """
+    validate_vector4(normal)
+    validate_vector4(up)
+    validate_vector4(offset)
+
+    w = make_versor(normal)
+
+    u = make_versor(
+        np.cross(
+            up[:3].flatten(),
+            w[:3].flatten(),
+        )
+    )
+
+    v = np.cross(
+        w[:3].flatten(),
+        u[:3].flatten(),
+    )
+
+    matrix: Matrix4x4 = np.empty(shape=(4, 4), dtype=np.float32)
+
+    matrix[0, :3] = u[:3].flatten()
+    matrix[0, 3] = offset[0]
+
+    matrix[1, :3] = v[:3].flatten()
+    matrix[1, 3] = offset[1]
+
+    matrix[2, :3] = w[:3].flatten()
+    matrix[2, 3] = offset[2]
+
+    matrix[3, :3] = 0
+    matrix[3, 3] = 1
 
     return matrix
