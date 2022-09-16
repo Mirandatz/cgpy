@@ -1,6 +1,10 @@
+import itertools
+import typing
+
 import numba
 import numpy as np
 import numpy.typing as npt
+import pygame
 
 import cgpy.colors as cc
 import cgpy.universes_mk2 as cu_mk2
@@ -13,6 +17,29 @@ DevicePolygon = npt.NDArray[np.int32]
 
 # Shape = (num_rows, num_columns), dtype = cc.ColorID
 DeviceBuffer = npt.NDArray[cc.ColorId]
+
+
+@numba.njit(fastmath=True, cache=True)  # type: ignore
+def create_device(num_rows: int, num_columns: int) -> DeviceBuffer:
+    assert num_rows >= 1
+    assert num_columns >= 1
+    return np.zeros(shape=(num_rows, num_columns), dtype=cc.ColorId)
+
+
+# @numba.njit(fastmath=True, cache=True)  # type: ignore
+def create_viewport(
+    min_x: int, min_y: int, num_rows: int, num_columns: int, buffer: DeviceBuffer
+) -> DeviceBuffer:
+    assert min_x >= 0
+    assert min_y >= 0
+    assert num_rows >= 1
+    assert num_columns >= 1
+
+    dev_rows, dev_columns = buffer.shape
+    assert min_x + num_columns <= dev_columns
+    assert min_y + num_rows <= dev_rows
+
+    return buffer[min_y : min_y + num_rows, min_x : min_x + num_columns]
 
 
 @numba.njit(fastmath=True, cache=True)  # type: ignore
@@ -153,3 +180,65 @@ def draw_object2d(
             color_id=color_id,
             buffer=port,
         )
+
+
+def _device_to_surface(
+    device: DeviceBuffer,
+    palette: list[cc.Color],
+) -> pygame.surface.Surface:
+    assert len(palette) > 0
+
+    # validating 'color_ids'
+    if np.min(device) < 0 or np.max(device) >= len(palette):
+        raise ValueError("dispositivo contem `ColorId`s fora da `palette`")
+
+    # decoding "float colors" to "byte colors"
+    red_palette = np.asarray([cc.extract_red_channel(c) for c in palette]).flatten()
+    green_palette = np.asarray([cc.extract_green_channel(c) for c in palette]).flatten()
+    blue_palette = np.asarray([cc.extract_blue_channel(c) for c in palette]).flatten()
+
+    tranposed_buffer = device.transpose()
+    flattened_buffer: npt.NDArray[cc.ColorId] = tranposed_buffer.flatten()
+
+    red_buffer = red_palette[flattened_buffer].reshape(tranposed_buffer.shape)
+    green_buffer = green_palette[flattened_buffer].reshape(tranposed_buffer.shape)
+    blue_buffer = blue_palette[flattened_buffer].reshape(tranposed_buffer.shape)
+
+    pixel_array = np.stack((red_buffer, green_buffer, blue_buffer), axis=-1).astype(
+        np.uint8
+    )
+
+    # place origin on the bottom-left part of the screen
+    mirrored_array = np.flip(pixel_array, axis=1)
+
+    surface = pygame.surfarray.make_surface(mirrored_array)
+    return surface
+
+
+def animate_devices(
+    devices: typing.Iterable[DeviceBuffer],
+    palettes: typing.Iterable[cc.Palette],
+    fps: int,
+) -> None:
+
+    screen = None
+
+    clock = pygame.time.Clock()
+    for device, palette in zip(
+        itertools.cycle(devices),
+        itertools.cycle(palettes),
+    ):
+        if screen is None:
+            num_rows, num_columns = device.shape
+            screen = pygame.display.set_mode(
+                (num_columns, num_rows),
+                pygame.NOFRAME,
+            )
+        else:
+            num_rows, num_columns = device.shape
+            assert screen.get_size() == (num_columns, num_rows)
+
+        sur = _device_to_surface(device, palette)
+        screen.blit(sur, (0, 0))
+        pygame.display.update()
+        clock.tick(fps)

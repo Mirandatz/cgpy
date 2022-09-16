@@ -1,12 +1,9 @@
 import pathlib
 import time
 
-import numba
-import numpy as np
 import pandas as pd
 
 import cgpy.colors as cc
-import cgpy.devices as cd
 import cgpy.devices_mk2 as cd_mk2
 import cgpy.universes as cu
 import cgpy.universes_mk2 as cu_mk2
@@ -33,7 +30,7 @@ def load_teapot() -> cu.Object3D:
 
 
 # @numba.njit(fastmath=True, cache=True)  # type: ignore
-def generate_device(teapot: cu_mk2.Object3D, degrees: float) -> cd.Device:
+def generate_device(teapot: cu_mk2.Object3D, degrees: float) -> cd_mk2.DeviceBuffer:
     rotation_matrix = cu_mk2.make_x_rotation_3d(degrees)
     normal = cu_mk2.make_vector4(0, 0, 1)
     up = cu_mk2.make_vector4(0, 1, 0)
@@ -51,13 +48,15 @@ def generate_device(teapot: cu_mk2.Object3D, degrees: float) -> cd.Device:
     zcp = -45
 
     bruh_obj2d = cu_mk2.perspective_project(rotated_teapot, zpp, zcp)
-    device = cd.Device(num_columns=800, num_rows=600)
 
-    port = cd.Viewport(
-        lower_left=cd.DevicePoint(0, 0),
-        num_columns=device.num_columns,
-        num_rows=device.num_rows,
-        device=device,
+    device = cd_mk2.create_device(num_rows=600, num_columns=800)
+
+    port = cd_mk2.create_viewport(
+        min_x=0,
+        min_y=0,
+        num_rows=device.shape[0],
+        num_columns=device.shape[1],
+        buffer=device,
     )
 
     window = cu.Window(-10, -10, 10, 10)
@@ -71,11 +70,11 @@ def generate_device(teapot: cu_mk2.Object3D, degrees: float) -> cd.Device:
     )
     cd_mk2.draw_object2d(
         poly=n_bruh_obj2d,
-        port=port.buffer_view,
+        port=port,
         color_id=cc.ColorId(1),
     )
 
-    # print(".", end="")
+    print(".", end="")
 
     return device
 
@@ -98,7 +97,7 @@ def animate_teapot(number_of_devices: int = NUMBER_OF_DEVICES) -> None:
     assert devices is not None
     assert palette is not None
 
-    cd.animate_devices(
+    cd_mk2.animate_devices(
         devices,
         [palette],
         fps=60,
