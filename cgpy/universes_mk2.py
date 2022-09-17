@@ -41,11 +41,11 @@ class Window:
 
     def __init__(
         self,
-        min_x: float,
-        min_y: float,
-        max_x: float,
-        max_y: float,
+        lower_left: tuple[float, float],
+        upper_right: tuple[float, float],
     ) -> None:
+        min_x, min_y = lower_left
+        max_x, max_y = upper_right
         assert math.isfinite(min_x)
         assert math.isfinite(min_y)
         assert math.isfinite(max_x)
@@ -60,19 +60,19 @@ class Window:
         self._max_y = max_y
 
     @property
-    def x(self) -> float:
+    def min_x(self) -> float:
         return self._min_x
 
     @property
-    def y(self) -> float:
+    def min_y(self) -> float:
         return self._min_y
 
     @property
-    def width(self) -> float:
+    def max_x(self) -> float:
         return self._max_x
 
     @property
-    def height(self) -> float:
+    def max_y(self) -> float:
         return self._max_y
 
 
@@ -285,7 +285,7 @@ def old_object3d_to_new_object3d(obj: cu.Object3D) -> Object3D:
 @numba.njit(fastmath=True, cache=True)  # type: ignore
 def make_x_rotation_3d(degrees: float) -> Matrix4x4:
     radians = degrees * np.pi / 180
-    matrix: Matrix4x4 = np.eye(4, 4, dtype=np.float32)  # type: ignore
+    matrix: Matrix4x4 = np.eye(4, 4, dtype=np.float32)
 
     matrix[1, 1] = np.cos(radians)
     matrix[1, 2] = -np.sin(radians)

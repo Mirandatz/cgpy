@@ -1,6 +1,7 @@
 import pathlib
 import time
 
+import numba
 import pandas as pd
 
 import cgpy.colors as cc
@@ -29,7 +30,7 @@ def load_teapot() -> cu.Object3D:
     return teapot
 
 
-# @numba.njit(fastmath=True, cache=True)  # type: ignore
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def generate_device(teapot: cu_mk2.Object3D, degrees: float) -> cd_mk2.DeviceBuffer:
     rotation_matrix = cu_mk2.make_x_rotation_3d(degrees)
     normal = cu_mk2.make_vector4(0, 0, 1)
@@ -59,7 +60,7 @@ def generate_device(teapot: cu_mk2.Object3D, degrees: float) -> cd_mk2.DeviceBuf
         buffer=device,
     )
 
-    window = cu.Window(-10, -10, 10, 10)
+    window = cu_mk2.Window((-10, -10), (10, 10))
 
     n_bruh_obj2d = cu_mk2.normalize_object2d_naive(
         bruh_obj2d,
@@ -68,15 +69,14 @@ def generate_device(teapot: cu_mk2.Object3D, degrees: float) -> cd_mk2.DeviceBuf
         x_max=window.max_x,
         y_max=window.max_y,
     )
+
     cd_mk2.draw_object2d(
         poly=n_bruh_obj2d,
         port=port,
         color_id=cc.ColorId(1),
     )
 
-    print(".", end="")
-
-    return device
+    return device  # type: ignore
 
 
 def animate_teapot(number_of_devices: int = NUMBER_OF_DEVICES) -> None:
@@ -88,6 +88,7 @@ def animate_teapot(number_of_devices: int = NUMBER_OF_DEVICES) -> None:
     devices = []
     for timestep in range(number_of_devices):
         devices.append(generate_device(new_teapot, timestep))
+        # print(".", end="")
 
     palette = cc.Palette([cc.Color(0, 0, 0), cc.Color(1, 0, 0)])
 

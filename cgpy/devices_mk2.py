@@ -26,9 +26,13 @@ def create_device(num_rows: int, num_columns: int) -> DeviceBuffer:
     return np.zeros(shape=(num_rows, num_columns), dtype=cc.ColorId)
 
 
-# @numba.njit(fastmath=True, cache=True)  # type: ignore
+@numba.njit(fastmath=True, cache=True)  # type: ignore
 def create_viewport(
-    min_x: int, min_y: int, num_rows: int, num_columns: int, buffer: DeviceBuffer
+    min_x: int,
+    min_y: int,
+    num_rows: int,
+    num_columns: int,
+    buffer: DeviceBuffer,
 ) -> DeviceBuffer:
     assert min_x >= 0
     assert min_y >= 0
