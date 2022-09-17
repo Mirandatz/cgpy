@@ -1,6 +1,9 @@
+import math
+
 import numba
 import numpy as np
 import numpy.typing as npt
+from numba.experimental import jitclass
 from numba.typed import List as NumbaList
 
 import cgpy.universes as cu
@@ -27,6 +30,50 @@ Object3D = npt.NDArray[np.float32]
 Vector4 = npt.NDArray[np.float32]
 Matrix3x3 = npt.NDArray[np.float32]
 Matrix4x4 = npt.NDArray[np.float32]
+
+
+@jitclass
+class Window:
+    _min_x: float
+    _min_y: float
+    _max_x: float
+    _max_y: float
+
+    def __init__(
+        self,
+        min_x: float,
+        min_y: float,
+        max_x: float,
+        max_y: float,
+    ) -> None:
+        assert math.isfinite(min_x)
+        assert math.isfinite(min_y)
+        assert math.isfinite(max_x)
+        assert math.isfinite(max_y)
+
+        assert min_x < max_x
+        assert min_y < max_y
+
+        self._min_x = min_x
+        self._min_y = min_y
+        self._max_x = max_x
+        self._max_y = max_y
+
+    @property
+    def x(self) -> float:
+        return self._min_x
+
+    @property
+    def y(self) -> float:
+        return self._min_y
+
+    @property
+    def width(self) -> float:
+        return self._max_x
+
+    @property
+    def height(self) -> float:
+        return self._max_y
 
 
 @numba.njit(fastmath=True, cache=True)  # type: ignore
